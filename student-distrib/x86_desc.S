@@ -10,6 +10,7 @@
 .globl gdt_desc, ldt_desc, tss_desc
 .globl tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl gdt_ptr
+.globl gdt_desc_ptr, gdt
 .globl idt_desc_ptr, idt
 
 .align 4
@@ -96,9 +97,13 @@ ldt_bottom:
 idt_desc_ptr:
     .word idt_bottom - idt - 1
     .long idt
-
-
+	.align 16
+	
+gdt_desc_ptr:  
+    .word gdt_bottom - gdt - 1 # 2 bytes table length
+    .long gdt # 4 bytes address 
     .align  16
+	
 idt:
 _idt:
     .rept NUM_VEC
