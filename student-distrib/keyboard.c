@@ -3,7 +3,7 @@
 
 #include "keyboard.h"
 
-// Scancode talbe used to layout a standard US keyboard.
+// Scancode table used to layout a standard US keyboard.
 // copied from http://www.osdever.net/bkerndev/Docs/keyboard.htm
 unsigned char keyboard_map[128] =
 {
@@ -47,10 +47,10 @@ unsigned char keyboard_map[128] =
 
 
 /* keyboard_init
- * Initialized the keyboard with US keyboard layout
+ * Initialized the keyboard
  * Inputs: None
  * Outputs: None
- * Side Effects: None
+ * Side Effects: Enable irq 1
  */
 void keyboard_init(){
 
@@ -58,9 +58,30 @@ void keyboard_init(){
 
 }
 
+// reference https://github.com/arjun024/mkeykernel
+/* keyboard_handler
+ * Keyboard interrupt handler with US keyboard layout
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: none
+ */
 void keyboard_handler(){
 
-    // todo
+    unsigned char status;
+    char keycode;
+
+    status = inb(KEYBOARD_STATUS_PORT);
+    /* Lowest bit of status check empty */
+    if (status & 0x01) {
+		keycode = inb(KEYBOARD_DATA_PORT);
+		  if(keycode >= 0){
+        
+        keyboard_map[keycode];
+        printf("%c",keyboard_map[keycode]);
+
+      }
+
+	}
     send_eoi(KEYBOARD_IRQ);
     
 }
