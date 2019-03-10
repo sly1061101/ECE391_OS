@@ -35,6 +35,11 @@ _tss:
     .endr
 tss_bottom:
 
+    .align 4
+gdt_desc_ptr:  
+    .word gdt_bottom - gdt - 1 # 2 bytes table length
+    .long gdt # 4 bytes address 
+
     .align  16
 gdt:
 _gdt:
@@ -92,18 +97,13 @@ ldt:
     .endr
 ldt_bottom:
 
-.align 4
+    .align 4
     .word 0 # Padding
 idt_desc_ptr:
     .word idt_bottom - idt - 1
     .long idt
-	.align 16
-	
-gdt_desc_ptr:  
-    .word gdt_bottom - gdt - 1 # 2 bytes table length
-    .long gdt # 4 bytes address 
+
     .align  16
-	
 idt:
 _idt:
     .rept NUM_VEC
