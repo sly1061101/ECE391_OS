@@ -49,13 +49,13 @@ void idt_init(){
 
         idt[i].present = 1;
 
+        idt[i].dpl = 0; // hardware interrupt handlers and exception handlers should have DPL=0
+
         if(i==SYS_CALL){
 
           idt[i].dpl= 3; // system call handler has its DPL set to 3
 
         }
-
-        idt[i].dpl = 0; // hardware interrupt handlers and exception handlers should have DPL=0
 
         idt[i].reserved0 = 0;
         idt[i].reserved1 = 1;
