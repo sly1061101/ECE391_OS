@@ -72,15 +72,14 @@ void keyboard_init(){
 void keyboard_handler(){
 
     unsigned char status;
-    char keycode;
+    unsigned char keycode;
 
     status = inb(KEYBOARD_STATUS_PORT);
     /* Lowest bit of status check empty */
     if (status & LOW_BIT_OFFSER) {
 		keycode = inb(KEYBOARD_DATA_PORT);
-		  if(keycode >= 0){
+		  if(keycode > 0){
         
-        keyboard_map[keycode];
         printf("%c",keyboard_map[keycode]);
 
       }
