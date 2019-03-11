@@ -36,6 +36,9 @@ void i8259_init(void) {
     outb(ICW4, MASTER_8259_DATA);   
     outb(ICW4, SLAVE_8259_DATA);
     wait_io();
+
+    master_mask = ALL_MASK;
+    slave_mask = ALL_MASK;
 }
 
 /* Enable (unmask) the specified IRQ */
@@ -51,6 +54,8 @@ void enable_irq(uint32_t irq_num) {
         irq_num = irq_num-8;
         slave_mask = slave_mask & (~(bit_mask << irq_num));
         outb(slave_mask,SLAVE_8259_DATA);
+        master_mask =  master_mask & (~(bit_mask << 2));
+        outb(master_mask,MASTER_8259_DATA);
     }
 }
 
