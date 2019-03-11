@@ -9,6 +9,7 @@
 #include "i8259.h"
 #include "debug.h"
 #include "tests.h"
+#include "idt.h"
 
 #define RUN_TESTS
 
@@ -147,14 +148,23 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    /*printf("Enabling Interrupts\n");
-    sti();*/
+
+    // Populate idt.
+    idt_init();
+    // Load idt into idtr register
+    lidt(idt_desc_ptr);
+    // Enable interrupt.
+    printf("Enabling Interrupts\n");
+    sti();
 
     enable_paging();
 
     printf("Paging has been enabled now!!!\n");
     printf("Entry 0 in pdt: %#x, entry 185 in this pt: %#x\n", (page_directory_table[0].entry_PT.pt_base_address<<12), (page_table[184].page_base_address<<12));
     printf("Entry 1 in pdt: %#x\n", (page_directory_table[1].entry_page.page_base_address<<22));
+
+    // Simple test for interrupt. Should invoke corresponding handler.
+    asm volatile ("int $15");
 
 #ifdef RUN_TESTS
     /* Run tests */
