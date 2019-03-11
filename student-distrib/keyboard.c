@@ -9,7 +9,7 @@
 
 // Scancode table used to layout a standard US keyboard.
 // copied from http://www.osdever.net/bkerndev/Docs/keyboard.htm
-unsigned char keyboard_map[128] =
+char keyboard_map[128] =
 {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8',	/* 9 */
   '9', '0', '-', '=', '\b',	/* Backspace */
@@ -80,8 +80,7 @@ void keyboard_handler(){
 		keycode = inb(KEYBOARD_DATA_PORT);
 		  if(keycode >= 0){
         
-        keyboard_map[keycode];
-        printf("%c",keyboard_map[keycode]);
+        printf("%c",keyboard_map[(unsigned char)keycode]);
 
       }
 

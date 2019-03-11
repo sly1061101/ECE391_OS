@@ -10,12 +10,15 @@
 #include "debug.h"
 #include "tests.h"
 #include "idt.h"
+#include "keyboard.h"
+#include "rtc.h"
 
 #define RUN_TESTS
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
+
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
