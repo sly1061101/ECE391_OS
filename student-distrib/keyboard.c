@@ -4,6 +4,9 @@
 #include "keyboard.h"
 #include "idt.h"
 
+
+#define LOW_BIT_OFFSER 0x01
+
 // Scancode table used to layout a standard US keyboard.
 // copied from http://www.osdever.net/bkerndev/Docs/keyboard.htm
 unsigned char keyboard_map[128] =
@@ -73,7 +76,7 @@ void keyboard_handler(){
 
     status = inb(KEYBOARD_STATUS_PORT);
     /* Lowest bit of status check empty */
-    if (status & 0x01) {
+    if (status & LOW_BIT_OFFSER) {
 		keycode = inb(KEYBOARD_DATA_PORT);
 		  if(keycode >= 0){
         

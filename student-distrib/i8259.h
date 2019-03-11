@@ -29,6 +29,8 @@
  * the interrupt number and sent out to the PIC
  * to declare the interrupt finished */
 #define EOI                 0x60
+#define OFFSET2             0x02
+#define OFFSET8             0x08
 
 /* Externally-visible functions */
 
