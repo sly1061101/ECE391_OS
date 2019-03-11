@@ -3,6 +3,7 @@
 #include "types.h"
 #include "lib.h"
 #include "idt.h"
+#include "keyboard.h"
 
 #define RTC_REG_A 0x8A
 #define RTC_REG_B 0x8B
@@ -66,6 +67,7 @@ void rtc_handler(void)
     outb(RTC_REG_C,RTC_REG_PORT);	// select register C
     inb(RTC_REG_DATA);		// just throw away contents
     send_eoi(IRQ8);
-    // test_interrupts();
+    if(rtc_test)
+        test_interrupts();
     sti();
 }

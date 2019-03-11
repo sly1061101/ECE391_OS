@@ -62,6 +62,8 @@ void keyboard_init(){
 
 }
 
+int rtc_test = 0;
+
 // reference https://github.com/arjun024/mkeykernel
 /* keyboard_handler
  * Keyboard interrupt handler with US keyboard layout
@@ -81,6 +83,12 @@ void keyboard_handler(){
 		  if(keycode >= 0){
         
         printf("%c",keyboard_map[(unsigned char)keycode]);
+
+        if(keyboard_map[(unsigned char)keycode] == 'r')
+          rtc_test = 1;
+        else
+          rtc_test = 0;
+        
 
       }
 

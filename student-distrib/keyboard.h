@@ -10,6 +10,8 @@
 #define KEYBOARD_DATA_PORT 0x60
 #define KEYBOARD_STATUS_PORT 0x64
 
+extern int rtc_test;
+
 /* Initialize the keyboard */
 extern void keyboard_init();
 
