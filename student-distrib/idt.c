@@ -1,6 +1,6 @@
 #include "idt.h"
 #include "lib.h"
-#include "interrupt.h"
+#include "interrupt_linkage.h"
 
 
 #define SYS_CALL 0x80
@@ -77,7 +77,7 @@ void idt_init(){
         idt[i].seg_selector = KERNEL_CS;
     }
 
-    // Populate interrupt handler array.
+    // Populate interrupt handler jump table.
     interrupt_handler[0] = exc_de;
     interrupt_handler[1] = exc_db;
     interrupt_handler[2] = exc_nmi;

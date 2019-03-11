@@ -1,8 +1,8 @@
-# interrupt.S
+# interrupt_linkage.S
 # vim:ts=4 noexpandtab
 
 #define ASM     1
-#include "interrupt.h"
+#include "interrupt_linkage.h"
 #include "idt.h"
 
 .text
@@ -30,15 +30,20 @@
 .global ir_linkage_19
 
 common_interrupt:
+    # save all general purpose registers (8 in total)
     pushal
-    # save interrupt number to eax
+    # load interrupt number and invoke corresponding handler from jump table
     movl 8*4(%esp), %eax
     movl $interrupt_handler, %ebx
     call *(%ebx, %eax, 4)
+    # restore all general registers
     popal
+    # remove interrupt number (pushed at ir_linkage) from stack
     addl $4, %esp
+    # use iret to return
     iret
 
+# each ir_linkage function simply pushes interrupt number into stack then jump to common handler
 ir_linkage_0:
     pushl $0
     jmp common_interrupt
