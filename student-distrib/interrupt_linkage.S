@@ -4,6 +4,7 @@
 #define ASM     1
 #include "interrupt_linkage.h"
 #include "idt.h"
+#include "x86_desc.h"
 
 .text
 
@@ -28,6 +29,8 @@
 .global ir_linkage_17
 .global ir_linkage_18
 .global ir_linkage_19
+.global ir_linkage_40
+.global ir_linkage_default
 
 common_interrupt:
     # save all general purpose registers (8 in total)
@@ -122,4 +125,12 @@ ir_linkage_18:
 
 ir_linkage_19:
     pushl $19
+    jmp common_interrupt
+
+ir_linkage_40:
+    pushl $40
+    jmp common_interrupt
+
+ir_linkage_default:
+    pushl $NUM_VEC
     jmp common_interrupt

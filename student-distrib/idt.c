@@ -5,14 +5,14 @@
 
 #define SYS_CALL 0x80
 
-// Jump table for all interrupt hanlders.
-void (*interrupt_handler[NUM_VEC])();
+// Jump table for all interrupt hanlders. Last one is default handler.
+void (*interrupt_handler[NUM_VEC + 1])();
 
 /* format a macro to handle all different excpetions */
 #define exception(name,message) \
 void name() {  \
     cli();      \
-    printf("%s\n", #message);   \
+    printf("%s\n", message);   \
     sti();   \
 }
 
@@ -36,6 +36,8 @@ exception(exc_mf,"x87 FPU Floating_Point Error");
 exception(exc_ac,"Alignment Check Exception");
 exception(exc_mc,"Machine-Check Exception");
 exception(exc_xf,"SIMD Floating-Point Exception");
+
+exception(default_handler,"Default interrupt was invoked!");
 
 /* idt_init
  * 
@@ -69,9 +71,7 @@ void idt_init(){
         idt[i].size = 1;  // 1 for 32 bit and 0 for 16 bit, set this file to 1 always
 
         if(i>=32){
-
            idt[i].reserved3 = 0; 
-           //SET_IDT_ENTRY(idt[i], default_interrupt);
         }
 
         idt[i].seg_selector = KERNEL_CS;
@@ -99,8 +99,13 @@ void idt_init(){
     interrupt_handler[18] = exc_mc;
     interrupt_handler[19] = exc_xf;
 
+    interrupt_handler[NUM_VEC] = default_handler;
 
     // set up IDT entry
+    for(i = 0; i < NUM_VEC; ++i) {
+        SET_IDT_ENTRY(idt[i], ir_linkage_default);
+    }
+
     SET_IDT_ENTRY(idt[0],ir_linkage_0);
     SET_IDT_ENTRY(idt[1],ir_linkage_1);
     SET_IDT_ENTRY(idt[2],ir_linkage_2);
@@ -121,5 +126,5 @@ void idt_init(){
     SET_IDT_ENTRY(idt[17],ir_linkage_17);
     SET_IDT_ENTRY(idt[18],ir_linkage_18);
     SET_IDT_ENTRY(idt[19],ir_linkage_19);
-
+    SET_IDT_ENTRY(idt[40],ir_linkage_40);
 }

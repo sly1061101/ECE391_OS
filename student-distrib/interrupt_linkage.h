@@ -23,6 +23,8 @@ extern void ir_linkage_16();
 extern void ir_linkage_17();
 extern void ir_linkage_18();
 extern void ir_linkage_19();
+extern void ir_linkage_40();
+extern void ir_linkage_default();
 
 #endif
 
