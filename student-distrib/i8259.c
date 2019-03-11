@@ -12,7 +12,7 @@ uint8_t slave_mask;  /* IRQs 8-15 */
 
 /* Initialize the 8259 PIC */
 void i8259_init(void) {
-    outb(ALL_MASK,MASTER_8259_DATA);   /*mask all of 8258*/
+    outb(ALL_MASK,MASTER_8259_DATA);   /*mask all of 8259*/
     outb(ALL_MASK,SLAVE_8259_DATA);
 
     outb(ICW1,MASTER_8259_PORT);     /*init all port in cascade mode*/
