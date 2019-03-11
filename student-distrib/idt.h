@@ -5,8 +5,8 @@
 
 #ifndef ASM
 
-// Jump table for all interrupt hanlders.
-extern void (*interrupt_handler[NUM_VEC])();
+// Jump table for all interrupt hanlders. Last one is default handler.
+extern void (*interrupt_handler[NUM_VEC + 1])();
 
 extern void idt_init();
 
