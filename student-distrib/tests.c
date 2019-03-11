@@ -71,8 +71,9 @@ int exception_de_test(){
 * Trigger a general exception
 * Inputs: None
 * Outputs: PASS/FAIL
-* Coverage: A piece of exception that should be handled
-* Files: idt.c
+* Coverage: Test whether IDT is initialized correctly and assembly 
+*			linkage and exception handlers are working.
+* Files: idt.c, interrupt_linkage.S
 */
 int general_exception_test(){
     TEST_HEADER;
