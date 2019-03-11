@@ -47,6 +47,44 @@ int idt_test(){
 
 // add more tests here
 
+/* exception_de_test
+*
+* Trigger a exception 0 : divide by zero
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: A piece of exception that should be handled
+* Files: idt.c
+*/
+int exception_de_test(){
+    TEST_HEADER;
+
+    int result = PASS;
+    int a = 5;
+    int b = 0;
+    int c;
+	c = a/b;
+    return result;
+}
+
+/* keyboard_test
+*
+* When a lower case letter is pressed on the keyboard, it is 
+* properly handled by keyboard interrupt handler
+* Inputs: keyboard_input -- real time keyboard interrupt
+* Outputs: PASS/FAIL
+* Coverage: keyboard handler
+* Files: idt.c, keyboard.c
+*/
+
+// void keyboard_test(unsigned char keyboard_input){
+    
+// 	TEST_HEADER;
+    
+//     printf(“The pressed key is %c\n”,keyboard_map[keyboard_input]);
+ 
+// }
+
+
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
