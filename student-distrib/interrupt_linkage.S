@@ -33,7 +33,8 @@
 .global ir_linkage_40
 .global ir_linkage_default
 
-
+OFFSET_VECTOR_NUMBER:
+    .word 32
 
 # common_interrupt
 # DISCRIPTION: handle all common interupt
@@ -46,7 +47,7 @@ common_interrupt:
     # save all general purpose registers (8 in total)
     pushal
     # load interrupt number and invoke corresponding handler from jump table
-    movl 8*4(%esp), %eax
+    movl OFFSET_VECTOR_NUMBER(%esp), %eax
     movl $interrupt_handler, %ebx
     call *(%ebx, %eax, 4)
     # restore all general registers
