@@ -4,6 +4,8 @@
 
 #define PASS 1
 #define FAIL 0
+#define KB_IDT 0x21
+#define RTC_IDT 0x28
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -39,8 +41,20 @@ int idt_test(){
 			(idt[i].offset_31_16 == NULL)){
 			assertion_failure();
 			result = FAIL;
-		}
+		}		
 	}
+
+	if ((idt[RTC_IDT].offset_15_00 == NULL) && 
+			(idt[RTC_IDT].offset_31_16 == NULL)){
+			assertion_failure();
+			result = FAIL;
+		}
+
+    if ((idt[RTC_IDT].offset_15_00 == NULL) && 
+			(idt[RTC_IDT].offset_31_16 == NULL)){
+			assertion_failure();
+			result = FAIL;
+		}
 
 	return result;
 }
@@ -55,42 +69,12 @@ int idt_test(){
 * Coverage: A piece of exception that should be handled
 * Files: idt.c
 */
-<<<<<<< HEAD
-int exception_de_test(){
-    TEST_HEADER;
-
-    int result = PASS;
-=======
 void exception_de_test(){
     TEST_HEADER;
->>>>>>> 974a24ec94354199edbef590791aee632ee52bd0
     int a = 5;
     int b = 0;
     int c;
 	c = a/b;
-<<<<<<< HEAD
-    return result;
-}
-
-/* keyboard_test
-*
-* When a lower case letter is pressed on the keyboard, it is 
-* properly handled by keyboard interrupt handler
-* Inputs: keyboard_input -- real time keyboard interrupt
-* Outputs: PASS/FAIL
-* Coverage: keyboard handler
-* Files: idt.c, keyboard.c
-*/
-
-// void keyboard_test(unsigned char keyboard_input){
-    
-// 	TEST_HEADER;
-    
-//     printf(“The pressed key is %c\n”,keyboard_map[keyboard_input]);
- 
-// }
-
-=======
 }
 
 /* general_exception_test
@@ -177,7 +161,6 @@ void deref_null_address(){
 	uint8_t *p = NULL;
 	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
 }
->>>>>>> 974a24ec94354199edbef590791aee632ee52bd0
 
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
