@@ -55,14 +55,20 @@ int idt_test(){
 * Coverage: A piece of exception that should be handled
 * Files: idt.c
 */
+<<<<<<< HEAD
 int exception_de_test(){
     TEST_HEADER;
 
     int result = PASS;
+=======
+void exception_de_test(){
+    TEST_HEADER;
+>>>>>>> 974a24ec94354199edbef590791aee632ee52bd0
     int a = 5;
     int b = 0;
     int c;
 	c = a/b;
+<<<<<<< HEAD
     return result;
 }
 
@@ -84,6 +90,94 @@ int exception_de_test(){
  
 // }
 
+=======
+}
+
+/* general_exception_test
+*
+* Trigger a general exception
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether IDT is initialized correctly and assembly 
+*			linkage and exception handlers are working.
+* Files: idt.c, interrupt_linkage.S
+*/
+void general_exception_test(){
+    TEST_HEADER;
+
+	// Replace the interrupt number to what you want to trigger.
+	asm volatile("int $10");
+}
+
+/* deref_valid_addresses
+*
+* Dereference some valid memory addresses which have been mapped into physical memory.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether paging, PD and PT are initialized correctly.
+* Files: paging.S
+*/
+int deref_valid_addresses(){
+    TEST_HEADER;
+
+	int result = PASS;
+
+	uint8_t *p;
+
+	// Video memory page.
+	p = 0x000B8000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+
+	// Kernel memory page.
+	p = 0x00400000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x00500000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x00600000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x00700000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x007FFFFF;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+
+    return result;
+}
+
+/* deref_invalid_address
+*
+* Dereference invalid memory address which hasn't been mapped into physical memory.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether paging, PD and PT are initialized correctly.
+* Files: paging.S
+*/
+void deref_invalid_address(){
+    TEST_HEADER;
+
+	uint8_t *p;
+
+	// Set this to be an invalid address.
+	p = 0x000A0000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+}
+
+/* deref_null_address
+*
+* Dereference null memory address.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether IDT is initialized correctly and assembly 
+			linkage and exception handlers are working.Test whether
+			paging, PD and PT are initialized correctly.
+* Files: paging.S
+*/
+void deref_null_address(){
+    TEST_HEADER;
+
+	uint8_t *p = NULL;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+}
+>>>>>>> 974a24ec94354199edbef590791aee632ee52bd0
 
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
@@ -94,5 +188,9 @@ int exception_de_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	// launch your tests here
+	// TEST_OUTPUT("divide by 0 test", exception_de_test());
+	// TEST_OUTPUT("general_exception_test", general_exception_test());
+	// TEST_OUTPUT("Dereference video memory address and kernel memory address", deref_valid_addresses());
+	// TEST_OUTPUT("Dereference memory address that is not in page table", deref_invalid_address());
+	// TEST_OUTPUT("Dereference null memory address.", deref_null_address());
 }
