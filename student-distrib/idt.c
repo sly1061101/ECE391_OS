@@ -12,6 +12,7 @@ void (*interrupt_handler[NUM_VEC + 1])();
 #define exception(name,message) \
 void name() {                   \
     cli();                      \
+    clear();                    \
     printf("%s\n", message);    \
     while(1);                   \
     sti();                      \
@@ -31,7 +32,20 @@ exception(exc_ts,"Invalid TSS Exception");
 exception(exc_np,"Segment Not Present");
 exception(exc_ss,"Stack Full Exception");
 exception(exc_gp,"General Protection Exception");
-exception(exc_pf,"Page-Fault Exception");
+
+void exc_pf() {
+    cli();
+    uint32_t address;
+    asm volatile("movl %%cr2, %0" \
+                 :"=r"(address)   \
+                 :                \
+                 :"memory");
+    clear();
+    printf("Page-Fault Exception. Address accessed: 0x%#x\n", address);
+    while(1);
+    sti();
+}
+
 exception(exc_15,"INT 15 Handler!"); // Not exist in Intel manual.
 exception(exc_mf,"x87 FPU Floating_Point Error");
 exception(exc_ac,"Alignment Check Exception");
