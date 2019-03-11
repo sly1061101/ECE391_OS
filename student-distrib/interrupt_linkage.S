@@ -29,6 +29,7 @@
 .global ir_linkage_17
 .global ir_linkage_18
 .global ir_linkage_19
+.global ir_linkage_40
 .global ir_linkage_default
 
 common_interrupt:
@@ -124,6 +125,10 @@ ir_linkage_18:
 
 ir_linkage_19:
     pushl $19
+    jmp common_interrupt
+
+ir_linkage_40:
+    pushl $40
     jmp common_interrupt
 
 ir_linkage_default:

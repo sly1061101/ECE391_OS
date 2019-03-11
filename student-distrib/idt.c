@@ -102,6 +102,10 @@ void idt_init(){
     interrupt_handler[NUM_VEC] = default_handler;
 
     // set up IDT entry
+    for(i = 0; i < NUM_VEC; ++i) {
+        SET_IDT_ENTRY(idt[i], ir_linkage_default);
+    }
+
     SET_IDT_ENTRY(idt[0],ir_linkage_0);
     SET_IDT_ENTRY(idt[1],ir_linkage_1);
     SET_IDT_ENTRY(idt[2],ir_linkage_2);
@@ -122,8 +126,5 @@ void idt_init(){
     SET_IDT_ENTRY(idt[17],ir_linkage_17);
     SET_IDT_ENTRY(idt[18],ir_linkage_18);
     SET_IDT_ENTRY(idt[19],ir_linkage_19);
-
-    for(i = 20; i < NUM_VEC; ++i) {
-        SET_IDT_ENTRY(idt[i], ir_linkage_default);
-    }
+    SET_IDT_ENTRY(idt[40],ir_linkage_40);
 }

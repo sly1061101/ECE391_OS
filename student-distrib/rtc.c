@@ -2,6 +2,7 @@
 #include "i8259.h"
 #include "types.h"
 #include "lib.h"
+#include "idt.h"
 
 #define RTC_REG_A 0x8A
 #define RTC_REG_B 0x8B
@@ -12,6 +13,7 @@
 #define ORED 0x40
 #define RATE_OFFSET 0xF0
 
+void rtc_handler(void);
 
 /*reference from https://wiki.osdev.org/RTC */
 void rtc_init(void)
@@ -33,6 +35,9 @@ void rtc_init(void)
     prev=inb(RTC_REG_DATA);	    // get initial value of register A
     outb(RTC_REG_A,RTC_REG_PORT);		// reset index to A
     outb((prev & RATE_OFFSET) | rate, RTC_REG_DATA); //write only our rate to A. Note, rate is the bottom 4 bits.
+
+    // Register handler.
+    interrupt_handler[40] = rtc_handler;
 
     enable_irq(8);
     sti();

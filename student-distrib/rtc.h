@@ -3,9 +3,6 @@
 
 #include "types.h"
 
-
 void rtc_init(void);
-
-extern void rtc_handler(void);
 
 #endif
