@@ -86,6 +86,40 @@ int general_exception_test(){
     return result;
 }
 
+/* deref_valid_addresses
+*
+* Dereference some valid memory addresses which have been mapped into physical memory.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether paging, PD and PT are initialized correctly.
+* Files: paging.S
+*/
+int deref_valid_addresses(){
+    TEST_HEADER;
+
+	int result = PASS;
+
+	uint8_t *p;
+
+	// Video memory page.
+	p = 0x000B8000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+
+	// Kernel memory page.
+	p = 0x00400000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x00500000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x00600000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x00700000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x007FFFFF;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+
+    return result;
+}
+
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -97,4 +131,5 @@ void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	// TEST_OUTPUT("divide by 0 test", exception_de_test());
 	// TEST_OUTPUT("general_exception_test", general_exception_test());
+	// TEST_OUTPUT("Dereference video memory address and kernel memory address", deref_valid_addresses());
 }
