@@ -70,12 +70,14 @@ int idt_test(){
 * Coverage: A piece of exception that should be handled
 * Files: idt.c
 */
-void exception_de_test(){
+int exception_de_test(){
     TEST_HEADER;
     int a = 5;
     int b = 0;
     int c;
 	c = a/b;
+
+	return PASS;
 }
 
 /* general_exception_test
@@ -87,11 +89,13 @@ void exception_de_test(){
 *			linkage and exception handlers are working.
 * Files: idt.c, interrupt_linkage.S
 */
-void general_exception_test(){
+int general_exception_test(){
     TEST_HEADER;
 
 	// Replace the interrupt number to what you want to trigger.
 	asm volatile("int $10");
+
+	return PASS;
 }
 
 /* deref_valid_addresses
@@ -136,7 +140,7 @@ int deref_valid_addresses(){
 * Coverage: Test whether paging, PD and PT are initialized correctly.
 * Files: paging.S
 */
-void deref_invalid_address(){
+int deref_invalid_address(){
     TEST_HEADER;
 
 	uint8_t *p;
@@ -144,6 +148,8 @@ void deref_invalid_address(){
 	// Set this to be an invalid address.
 	p = (uint8_t *)0x000A0000;
 	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+
+	return PASS;
 }
 
 /* deref_null_address
@@ -156,11 +162,13 @@ void deref_invalid_address(){
 			paging, PD and PT are initialized correctly.
 * Files: paging.S
 */
-void deref_null_address(){
+int deref_null_address(){
     TEST_HEADER;
 
 	uint8_t *p = NULL;
 	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+
+	return PASS;
 }
 
 /* pdt_and_pt_test
