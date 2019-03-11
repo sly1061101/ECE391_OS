@@ -5,6 +5,8 @@
 
 #define PASS 1
 #define FAIL 0
+#define KB_IDT 0x21
+#define RTC_IDT 0x28
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -40,8 +42,20 @@ int idt_test(){
 			(idt[i].offset_31_16 == NULL)){
 			assertion_failure();
 			result = FAIL;
-		}
+		}		
 	}
+
+	if ((idt[RTC_IDT].offset_15_00 == NULL) && 
+			(idt[RTC_IDT].offset_31_16 == NULL)){
+			assertion_failure();
+			result = FAIL;
+		}
+
+    if ((idt[RTC_IDT].offset_15_00 == NULL) && 
+			(idt[RTC_IDT].offset_31_16 == NULL)){
+			assertion_failure();
+			result = FAIL;
+		}
 
 	return result;
 }
