@@ -66,24 +66,24 @@ int exception_de_test(){
     return result;
 }
 
-/* keyboard_test
+/* general_exception_test
 *
-* When a lower case letter is pressed on the keyboard, it is 
-* properly handled by keyboard interrupt handler
-* Inputs: keyboard_input -- real time keyboard interrupt
+* Trigger a general exception
+* Inputs: None
 * Outputs: PASS/FAIL
-* Coverage: keyboard handler
-* Files: idt.c, keyboard.c
+* Coverage: A piece of exception that should be handled
+* Files: idt.c
 */
+int general_exception_test(){
+    TEST_HEADER;
 
-// void keyboard_test(unsigned char keyboard_input){
-    
-// 	TEST_HEADER;
-    
-//     printf(“The pressed key is %c\n”,keyboard_map[keyboard_input]);
- 
-// }
+	int result = PASS;
 
+	// Replace the interrupt number to what you want to trigger.
+	asm volatile("int $10");
+
+    return result;
+}
 
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
@@ -94,5 +94,6 @@ int exception_de_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	// launch your tests here
+	// TEST_OUTPUT("divide by 0 test", exception_de_test());
+	// TEST_OUTPUT("general_exception_test", general_exception_test());
 }
