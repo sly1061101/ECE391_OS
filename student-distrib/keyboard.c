@@ -2,6 +2,7 @@
  */
 
 #include "keyboard.h"
+#include "idt.h"
 
 // Scancode table used to layout a standard US keyboard.
 // copied from http://www.osdever.net/bkerndev/Docs/keyboard.htm
@@ -53,7 +54,7 @@ unsigned char keyboard_map[128] =
  * Side Effects: Enable irq 1
  */
 void keyboard_init(){
-
+    interrupt_handler[33] = keyboard_handler;
     enable_irq(KEYBOARD_IRQ);
 
 }
