@@ -66,5 +66,6 @@ void rtc_handler(void)
     outb(RTC_REG_C,RTC_REG_PORT);	// select register C
     inb(RTC_REG_DATA);		// just throw away contents
     send_eoi(IRQ8);
+    // test_interrupts();
     sti();
 }
