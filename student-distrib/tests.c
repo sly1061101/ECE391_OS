@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "paging.h"
 
 #define PASS 1
 #define FAIL 0
@@ -148,6 +149,65 @@ void deref_null_address(){
 	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
 }
 
+/* pdt_and_pt_test
+*
+* Test values in page directory table and page table.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether values in page directory table
+			and page table are correct.
+* Files: paging.S
+*/
+int pdt_and_pt_test(){
+    TEST_HEADER;
+
+	int i;
+	int result = PASS;
+
+	// Test page directory table.
+	for(i = 0; i < 1024; ++i) {
+		if(i == 0) {
+			if(page_directory_table[i].entry_PT.present != 1
+			|| page_directory_table[i].entry_PT.page_size != 0) {
+				assertion_failure();
+				result = FAIL;
+			}
+		}
+		else if(i == 1) {
+			if(page_directory_table[i].entry_PT.present != 1
+			|| page_directory_table[i].entry_PT.page_size != 1) {
+				assertion_failure();
+				result = FAIL;
+			}
+		}
+		else {
+			if(page_directory_table[i].entry_PT.present != 0) {
+				assertion_failure();
+				result = FAIL;
+			}
+		}
+	}
+
+	// Test page table.
+	for(i = 0; i < 1024; ++i) {
+		if(i == 184) {
+			if(page_table[i].present != 1) {
+				assertion_failure();
+				result = FAIL;
+			}
+		}
+		else {
+			if(page_table[i].present != 0) {
+				assertion_failure();
+				result = FAIL;
+			}
+		}
+	}
+
+	return result;
+}
+
+
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -159,7 +219,8 @@ void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	// TEST_OUTPUT("divide by 0 test", exception_de_test());
 	// TEST_OUTPUT("general_exception_test", general_exception_test());
-	// TEST_OUTPUT("Dereference video memory address and kernel memory address", deref_valid_addresses());
+	TEST_OUTPUT("Dereference video memory address and kernel memory address", deref_valid_addresses());
 	// TEST_OUTPUT("Dereference memory address that is not in page table", deref_invalid_address());
 	// TEST_OUTPUT("Dereference null memory address.", deref_null_address());
+	TEST_OUTPUT("PDT and PT test", pdt_and_pt_test());
 }
