@@ -26,7 +26,7 @@ void rtc_init(void)
     outb(RTC_REG_B , RTC_REG_PORT);     // select status register b
     char prev = inb(RTC_REG_DATA);
     outb(RTC_REG_B , RTC_REG_PORT);     // select status register b
-    outb(RTC_REG_DATA , prev | ORED);
+    outb(prev | ORED, RTC_REG_DATA);
 
     /*change the interupt rate*/
     outb(RTC_REG_A,RTC_REG_PORT);		// set index to register A
