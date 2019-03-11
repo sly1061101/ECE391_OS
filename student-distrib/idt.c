@@ -10,10 +10,11 @@ void (*interrupt_handler[NUM_VEC + 1])();
 
 /* format a macro to handle all different excpetions */
 #define exception(name,message) \
-void name() {  \
-    cli();      \
-    printf("%s\n", message);   \
-    sti();   \
+void name() {                   \
+    cli();                      \
+    printf("%s\n", message);    \
+    while(1);                   \
+    sti();                      \
 }
 
 exception(exc_de,"Divide Error Exception");

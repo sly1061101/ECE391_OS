@@ -33,6 +33,15 @@
 .global ir_linkage_40
 .global ir_linkage_default
 
+
+
+# common_interrupt
+# DISCRIPTION: handle all common interupt
+# INPUT: NONE
+# OUTPUT: NONE
+# RETURN VALUE: NONE
+# SIDE EFFECTS: NONE
+
 common_interrupt:
     # save all general purpose registers (8 in total)
     pushal

@@ -3,6 +3,7 @@
 
 #include "types.h"
 
-void rtc_init(void);
+void rtc_handler(void); // rtc handler
+void rtc_init(void); //rtc initialization
 
 #endif

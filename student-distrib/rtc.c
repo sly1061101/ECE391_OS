@@ -12,10 +12,20 @@
 #define RTC_RAM 0x20
 #define ORED 0x40
 #define RATE_OFFSET 0xF0
+#define IRQ8 8
 
-void rtc_handler(void);
+
+//void rtc_handler(void);
 
 /*reference from https://wiki.osdev.org/RTC */
+
+/*rtc_init
+* DISCRIPTION: Initialize the rtc driver
+* INPUT: NONE
+* OUTPUT: NONE
+* RETURN VALUE: NONE
+* SIDE EFFECTS: rtc is initialized'
+*/
 void rtc_init(void)
 {
     unsigned rate = 3;
@@ -39,16 +49,23 @@ void rtc_init(void)
     // Register handler.
     interrupt_handler[40] = rtc_handler;
 
-    enable_irq(8);
+    enable_irq(IRQ8);
     sti();
 
 }
 
+/* rtc_handler
+ * rtc interrupt handler 
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: none
+ */
 void rtc_handler(void)
 {
     cli();
     outb(RTC_REG_C,RTC_REG_PORT);	// select register C
     inb(RTC_REG_DATA);		// just throw away contents
-    send_eoi(8);
+    send_eoi(IRQ8);
+    // test_interrupts();
     sti();
 }

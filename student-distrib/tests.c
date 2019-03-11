@@ -1,9 +1,12 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "paging.h"
 
 #define PASS 1
 #define FAIL 0
+#define KB_IDT 0x21
+#define RTC_IDT 0x28
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -39,8 +42,20 @@ int idt_test(){
 			(idt[i].offset_31_16 == NULL)){
 			assertion_failure();
 			result = FAIL;
-		}
+		}		
 	}
+
+	if ((idt[RTC_IDT].offset_15_00 == NULL) && 
+			(idt[RTC_IDT].offset_31_16 == NULL)){
+			assertion_failure();
+			result = FAIL;
+		}
+
+    if ((idt[RTC_IDT].offset_15_00 == NULL) && 
+			(idt[RTC_IDT].offset_31_16 == NULL)){
+			assertion_failure();
+			result = FAIL;
+		}
 
 	return result;
 }
@@ -55,34 +70,156 @@ int idt_test(){
 * Coverage: A piece of exception that should be handled
 * Files: idt.c
 */
-int exception_de_test(){
+void exception_de_test(){
     TEST_HEADER;
-
-    int result = PASS;
     int a = 5;
     int b = 0;
     int c;
 	c = a/b;
+}
+
+/* general_exception_test
+*
+* Trigger a general exception
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether IDT is initialized correctly and assembly 
+*			linkage and exception handlers are working.
+* Files: idt.c, interrupt_linkage.S
+*/
+void general_exception_test(){
+    TEST_HEADER;
+
+	// Replace the interrupt number to what you want to trigger.
+	asm volatile("int $10");
+}
+
+/* deref_valid_addresses
+*
+* Dereference some valid memory addresses which have been mapped into physical memory.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether paging, PD and PT are initialized correctly.
+* Files: paging.S
+*/
+int deref_valid_addresses(){
+    TEST_HEADER;
+
+	int result = PASS;
+
+	uint8_t *p;
+
+	// Video memory page.
+	p = 0x000B8000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+
+	// Kernel memory page.
+	p = 0x00400000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x00500000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x00600000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x00700000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+	p = 0x007FFFFF;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+
     return result;
 }
 
-/* keyboard_test
+/* deref_invalid_address
 *
-* When a lower case letter is pressed on the keyboard, it is 
-* properly handled by keyboard interrupt handler
-* Inputs: keyboard_input -- real time keyboard interrupt
+* Dereference invalid memory address which hasn't been mapped into physical memory.
+* Inputs: None
 * Outputs: PASS/FAIL
-* Coverage: keyboard handler
-* Files: idt.c, keyboard.c
+* Coverage: Test whether paging, PD and PT are initialized correctly.
+* Files: paging.S
 */
+void deref_invalid_address(){
+    TEST_HEADER;
 
-// void keyboard_test(unsigned char keyboard_input){
-    
-// 	TEST_HEADER;
-    
-//     printf(“The pressed key is %c\n”,keyboard_map[keyboard_input]);
- 
-// }
+	uint8_t *p;
+
+	// Set this to be an invalid address.
+	p = 0x000A0000;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+}
+
+/* deref_null_address
+*
+* Dereference null memory address.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether IDT is initialized correctly and assembly 
+			linkage and exception handlers are working.Test whether
+			paging, PD and PT are initialized correctly.
+* Files: paging.S
+*/
+void deref_null_address(){
+    TEST_HEADER;
+
+	uint8_t *p = NULL;
+	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
+}
+
+/* pdt_and_pt_test
+*
+* Test values in page directory table and page table.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether values in page directory table
+			and page table are correct.
+* Files: paging.S
+*/
+int pdt_and_pt_test(){
+    TEST_HEADER;
+
+	int i;
+	int result = PASS;
+
+	// Test page directory table.
+	for(i = 0; i < 1024; ++i) {
+		if(i == 0) {
+			if(page_directory_table[i].entry_PT.present != 1
+			|| page_directory_table[i].entry_PT.page_size != 0) {
+				assertion_failure();
+				result = FAIL;
+			}
+		}
+		else if(i == 1) {
+			if(page_directory_table[i].entry_PT.present != 1
+			|| page_directory_table[i].entry_PT.page_size != 1) {
+				assertion_failure();
+				result = FAIL;
+			}
+		}
+		else {
+			if(page_directory_table[i].entry_PT.present != 0) {
+				assertion_failure();
+				result = FAIL;
+			}
+		}
+	}
+
+	// Test page table.
+	for(i = 0; i < 1024; ++i) {
+		if(i == 184) {
+			if(page_table[i].present != 1) {
+				assertion_failure();
+				result = FAIL;
+			}
+		}
+		else {
+			if(page_table[i].present != 0) {
+				assertion_failure();
+				result = FAIL;
+			}
+		}
+	}
+
+	return result;
+}
 
 
 /* Checkpoint 2 tests */
@@ -94,5 +231,10 @@ int exception_de_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	// launch your tests here
+	// TEST_OUTPUT("divide by 0 test", exception_de_test());
+	// TEST_OUTPUT("general_exception_test", general_exception_test());
+	TEST_OUTPUT("Dereference video memory address and kernel memory address", deref_valid_addresses());
+	// TEST_OUTPUT("Dereference memory address that is not in page table", deref_invalid_address());
+	// TEST_OUTPUT("Dereference null memory address.", deref_null_address());
+	TEST_OUTPUT("PDT and PT test", pdt_and_pt_test());
 }
