@@ -24,7 +24,7 @@ exception(exc_of,"Overflow Exception");
 exception(exc_br,"BOUND Range Exceeded Exception");
 exception(exc_ud,"Invalid Opcode Exception");
 exception(exc_nm,"Device Not Available Exception");
-exception(exc_df,"Doublt Fault Exception");
+exception(exc_df,"Double Fault Exception");
 exception(exc_cso,"Coprocessor Segment Overrun");
 exception(exc_ts,"Invalid TSS Exception");
 exception(exc_np,"Segment Not Present");
