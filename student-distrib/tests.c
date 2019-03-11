@@ -110,19 +110,19 @@ int deref_valid_addresses(){
 	uint8_t *p;
 
 	// Video memory page.
-	p = 0x000B8000;
+	p = (uint8_t *)0x000B8000;
 	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
 
 	// Kernel memory page.
-	p = 0x00400000;
+	p = (uint8_t *)0x00400000;
 	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
-	p = 0x00500000;
+	p = (uint8_t *)0x00500000;
 	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
-	p = 0x00600000;
+	p = (uint8_t *)0x00600000;
 	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
-	p = 0x00700000;
+	p = (uint8_t *)0x00700000;
 	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
-	p = 0x007FFFFF;
+	p = (uint8_t *)0x007FFFFF;
 	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
 
     return result;
@@ -142,7 +142,7 @@ void deref_invalid_address(){
 	uint8_t *p;
 
 	// Set this to be an invalid address.
-	p = 0x000A0000;
+	p = (uint8_t *)0x000A0000;
 	printf("The byte stored at address 0x%#x is 0x%x.\n", p, *p);
 }
 
