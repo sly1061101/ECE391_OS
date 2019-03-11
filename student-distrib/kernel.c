@@ -163,6 +163,9 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Entry 0 in pdt: %#x, entry 185 in this pt: %#x\n", (page_directory_table[0].entry_PT.pt_base_address<<12), (page_table[184].page_base_address<<12));
     printf("Entry 1 in pdt: %#x\n", (page_directory_table[1].entry_page.page_base_address<<22));
 
+    // Simple est for interrupt. Should invoke corresponding handler.
+    asm volatile ("int $15");
+
 #ifdef RUN_TESTS
     /* Run tests */
     launch_tests();
