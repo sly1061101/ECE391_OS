@@ -57,7 +57,7 @@ char keyboard_map[128] =
  * Side Effects: Enable irq 1
  */
 void keyboard_init(){
-    interrupt_handler[33] = keyboard_handler;
+    interrupt_handler[KEYBOARD_IR_VEC] = keyboard_handler;
     enable_irq(KEYBOARD_IRQ);
 
 }

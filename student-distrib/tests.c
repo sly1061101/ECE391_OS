@@ -179,7 +179,7 @@ int pdt_and_pt_test(){
 	int result = PASS;
 
 	// Test page directory table.
-	for(i = 0; i < 1024; ++i) {
+	for(i = 0; i < NUM_PDT_SIZE; ++i) {
 		if(i == 0) {
 			if(page_directory_table[i].entry_PT.present != 1
 			|| page_directory_table[i].entry_PT.page_size != 0) {
@@ -203,7 +203,7 @@ int pdt_and_pt_test(){
 	}
 
 	// Test page table.
-	for(i = 0; i < 1024; ++i) {
+	for(i = 0; i < NUM_PT_SIZE; ++i) {
 		if(i == 184) {
 			if(page_table[i].present != 1) {
 				assertion_failure();
