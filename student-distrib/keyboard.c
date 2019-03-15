@@ -12,6 +12,7 @@ int caps_flag = 0;
 int shift_flag = 0;
 int alt_flag = 0;
 int ctrl_flag = 0;
+int default_flag = 0;
 /* keyboard_init
  * Initialized the keyboard
  * Inputs: None
@@ -56,8 +57,11 @@ void keyboard_handler()
         return;
       }
 
-      //printf("%c",keyboard_map[keycode]);
+      //printf("%c",EMPTY);
+      if(default_flag){
+
       printf("%c", keycode_processed);
+      }
 
       if (keyboard_map[(unsigned char)keycode] == 'r')
         rtc_test = 1;
@@ -82,11 +86,13 @@ char char_converter(unsigned char input)
   {
   case CAPS_LOCK:
     caps_flag = PRESSED - caps_flag;
+    default_flag = RELEASED;
     break;
 
   case LEFT_SHIFT:
   case RIGHT_SHIFT:
     shift_flag = PRESSED;
+    default_flag = RELEASED;
     break;
 
   // case LEFT_SHIFT + HIGH_ORDER_BIT_MASK:
@@ -94,6 +100,7 @@ char char_converter(unsigned char input)
  // case RIGHT_SHIFT + HIGH_ORDER_BIT_MASK:
   case RIGHT_SHIFT_R:
     shift_flag = RELEASED;
+    default_flag = RELEASED;
     break;
 
   case CTRL:
@@ -113,8 +120,12 @@ char char_converter(unsigned char input)
     break;
 
   default:
+    default_flag = PRESSED;
     break;
   }
+
+  // if(!default_flag)
+  //   return EMPTY;
 
   if (caps_flag)
   {

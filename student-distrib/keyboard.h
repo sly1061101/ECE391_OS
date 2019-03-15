@@ -23,6 +23,7 @@
 #define ENTER 0x1C
 #define CTRL 0x1D
 #define ALT 0x38
+#define EMPTY 0x00
 
 #define PRESSED 1
 #define RELEASED 0
@@ -118,13 +119,13 @@ static unsigned char keyboard_map_shift[MAP_SIZE] =
         0, 27, '!', '@', '#', '$', '%', '^', '&', '*',    /* 9 */
         '(', ')', '_', '+', '\b',                         /* Backspace */
         '\t',                                             /* Tab */
-        'q', 'w', 'e', 'r',                               /* 19 */
-        't', 'y', 'u', 'i', 'o', 'p', '{', '}', '\n',     /* Enter key */
+        'Q', 'W', 'E', 'R',                               /* 19 */
+        'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n',     /* Enter key */
         0,                                                /* 29   - Control */
-        'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ':', /* 39 */
+        'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', /* 39 */
         '\'', '~', 0,                                     /* Left shift */
-        '|', 'z', 'x', 'c', 'v', 'b', 'n',                /* 49 */
-        'm', '<', '>', '?', 0,                            /* Right shift */
+        '|', 'Z', 'X', 'C', 'V', 'B', 'N',                /* 49 */
+        'M', '<', '>', '?', 0,                            /* Right shift */
         '*',
         0,   /* Alt */
         ' ', /* Space bar */
