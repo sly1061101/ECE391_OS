@@ -12,6 +12,7 @@
 #include "idt.h"
 #include "keyboard.h"
 #include "rtc.h"
+#include "file_system.h"
 
 #define RUN_TESTS
 
@@ -149,6 +150,12 @@ void entry(unsigned long magic, unsigned long addr) {
     rtc_init();
 
     keyboard_init();
+
+    // Extract file system image base address from multiboot information
+    //  and initialize file system driver.
+    module_t *fs_mod =(module_t *) mbi->mods_addr;
+    file_system_init(fs_mod->mod_start);
+
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
