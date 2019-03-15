@@ -7,49 +7,6 @@
 
 #define LOW_BIT_OFFSER 0x01
 
-// Scancode table used to layout a standard US keyboard.
-// copied from http://www.osdever.net/bkerndev/Docs/keyboard.htm
-char keyboard_map[128] =
-{
-    0,  27, '1', '2', '3', '4', '5', '6', '7', '8',	/* 9 */
-  '9', '0', '-', '=', '\b',	/* Backspace */
-  '\t',			/* Tab */
-  'q', 'w', 'e', 'r',	/* 19 */
-  't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',	/* Enter key */
-    0,			/* 29   - Control */
-  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',	/* 39 */
- '\'', '`',   0,		/* Left shift */
- '\\', 'z', 'x', 'c', 'v', 'b', 'n',			/* 49 */
-  'm', ',', '.', '/',   0,				/* Right shift */
-  '*',
-    0,	/* Alt */
-  ' ',	/* Space bar */
-    0,	/* Caps lock */
-    0,	/* 59 - F1 key ... > */
-    0,   0,   0,   0,   0,   0,   0,   0,
-    0,	/* < ... F10 */
-    0,	/* 69 - Num lock*/
-    0,	/* Scroll Lock */
-    0,	/* Home key */
-    0,	/* Up Arrow */
-    0,	/* Page Up */
-  '-',
-    0,	/* Left Arrow */
-    0,
-    0,	/* Right Arrow */
-  '+',
-    0,	/* 79 - End key*/
-    0,	/* Down Arrow */
-    0,	/* Page Down */
-    0,	/* Insert Key */
-    0,	/* Delete Key */
-    0,   0,   0,
-    0,	/* F11 Key */
-    0,	/* F12 Key */
-    0,	/* All other keys are undefined */
-};	
-
-
 /* keyboard_init
  * Initialized the keyboard
  * Inputs: None
@@ -75,24 +32,44 @@ void keyboard_handler(){
 
     unsigned char status;
     char keycode;
+    unsigned char keycode_processed;
 
     status = inb(KEYBOARD_STATUS_PORT);
-    /* Lowest bit of status check empty */
-    if (status & LOW_BIT_OFFSER) {
+
+  /* Lowest bit of status check empty */
+      if (status & LOW_BIT_OFFSER) {
 		keycode = inb(KEYBOARD_DATA_PORT);
+    keycode_processed = char_converter(keycode);
 		  if(keycode >= 0){
         
-        printf("%c",keyboard_map[(unsigned char)keycode]);
+        //printf("%c",keyboard_map[keycode]);
+        printf("%c",keycode_processed);
 
         if(keyboard_map[(unsigned char)keycode] == 'r')
           rtc_test = 1;
         else
           rtc_test = 0;
-        
+
 
       }
 
-	}
     send_eoi(KEYBOARD_IRQ);
     
 }
+}
+
+/* char_converter
+ * Helper fcuntion to handle special input cases
+ * Inputs: input -- unsigned char from KEYBOARD_DATA_PORT
+ * Outputs: converted character 
+ * Side Effects:s none
+ */
+char char_converter(char input){
+
+    // char input_test = keyboard_map[input];
+    // if(input_test==TAB){
+    //   return keyboard_map_caps[input_test];
+    // }
+     return keyboard_map[input];
+    
+} 
