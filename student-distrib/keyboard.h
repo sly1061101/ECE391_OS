@@ -27,6 +27,8 @@
 
 #define PRESSED 1
 #define RELEASED 0
+#define READY 1
+#define NOT_READY 0
 /* The scancode for key release (`break') is obtained from it by setting the high order bit */
 #define HIGH_ORDER_BIT_MASK 0x80
 
@@ -164,5 +166,20 @@ extern void keyboard_handler();
 
 /* Helper fcuntion to handle special input cases */
 extern char char_converter(unsigned char input);
+
+/* Initialize terminal stuff(or nothing), return 0 */
+extern int terminal_open();
+
+/* Clear any terminal specific variables(or do nothing), return 0 */
+extern int terminal_close();
+
+/* Read FROM the keyboard buffer into buf, return number of bytes read */
+extern int terminal_read(char* buf);
+
+/* Write TO the screen from buff, return number of bytes written or -1 */
+extern int terminal_write(char* buf, int count);
+
+
+
 
 #endif /* _KEYBOARD_H */

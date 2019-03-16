@@ -11,6 +11,7 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+static int origin = 0;
 
 /* void clear(void);
  * Inputs: void
@@ -22,7 +23,25 @@ void clear(void) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
+
+    update_cursor(origin,origin);
 }
+
+// Resource: https://wiki.osdev.org/Text_Mode_Cursor
+/* update_cursor
+ * Inputs: screen position for cursor
+ * Return Value: none
+ * Function: Update cursor position*/
+void update_cursor(int x, int y)
+{
+	uint16_t pos = y * NUM_COLS + x;
+ 
+	outb(0x0F, 0x3D4);
+	outb((uint8_t) (pos & 0xFF), 0x3D5);
+	outb(0x0E,0x3D4);
+	outb((uint8_t) ((pos >> 8) & 0xFF),0x3D5);
+}
+
 
 /* Standard printf().
  * Only supports the following format strings:
