@@ -177,7 +177,7 @@ extern int terminal_close();
 extern int terminal_read(char* buf);
 
 /* Write TO the screen from buff, return number of bytes written or -1 */
-extern int terminal_write(char* buf, int count);
+extern int terminal_write(char* buf, int size);
 
 
 

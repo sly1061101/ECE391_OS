@@ -15,6 +15,9 @@ int ctrl_flag = 0;
 int default_flag = 0;
 int terminal_flag = 0;
 int backspace_flag = 0;
+
+unsigned char keyboard_buffer[MAP_SIZE];
+unsigned char display_buff[MAP_SIZE];
 /* keyboard_init
  * Initialized the keyboard
  * Inputs: None
@@ -55,6 +58,8 @@ void keyboard_handler()
       if ((keycode_processed == 'l' || keycode_processed == 'L') && ctrl_flag ==1)
       {
         clear(); // clear screen
+        memset(keyboard_buffer,0,sizeof(keyboard_buffer)); // not sure
+        
         send_eoi(KEYBOARD_IRQ);
         return;
       }
@@ -109,7 +114,7 @@ char char_converter(unsigned char input)
   case CTRL:
     ctrl_flag = PRESSED;
     default_flag = RELEASED;
-    break;
+    break; 
 
   case CTRL + HIGH_ORDER_BIT_MASK:
     ctrl_flag = RELEASED;
@@ -128,7 +133,7 @@ char char_converter(unsigned char input)
 
   case ENTER:
     terminal_flag = READY;
-    default_flag = RELEASED;
+    //default_flag = RELEASED;
     break;
 
   case BACKSPACE:
@@ -192,9 +197,15 @@ int terminal_close()
  * Side Effects: none
  */
 int terminal_read(char* buf)
-
 {
-    return 0;
+    if(terminal_flag){
+      memcpy(buf,keyboard_buffer,sizeof(keyboard_buffer));
+      // clear keyboard_buffer
+      memset(keyboard_buffer,0,sizeof(keyboard_buffer));
+      terminal_flag = 0;
+      return sizeof(keyboard_buffer);
+    }
+    return -1; // is it necessary?
 }
 
 
@@ -204,9 +215,11 @@ int terminal_read(char* buf)
  * Outputs: number of bytes written or -1
  * Side Effects: none
  */
-int terminal_write(char* buf, int count)
+int terminal_write(char* buf, int size)
 
 {
-    return -1;
+    memcpy(display_buff,buf,sizeof(display_buff));
+    return size;
+    //return -1;
 }
 
