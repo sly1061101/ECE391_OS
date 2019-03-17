@@ -95,11 +95,129 @@ int32_t read_data(uint32_t inode_index, uint32_t offset, uint8_t *buf, uint32_t 
     return byte_count;
 }
 
+dentry_t dentry_opened_file;
+int32_t has_file_opened;
+uint32_t opened_file_offset;
+dentry_t dentry_opened_directory;
+int32_t has_directory_opened;
+uint32_t opened_directory_offset;
+
+int32_t file_open(const uint8_t *filename) {
+    if(filename == NULL)
+        return -1;
+    
+    dentry_t dentry;
+    if(read_dentry_by_name(filename, &dentry) == -1)
+        return -1;
+    
+    // If file_type is not regular file.
+    if(dentry.file_type != 2)
+        return -1;
+    
+    memcpy(&dentry_opened_file, &dentry, sizeof(dentry_t));
+
+    opened_file_offset = 0;
+
+    has_file_opened = 1;
+    
+    return 0;
+}
+
+int32_t file_close(int32_t fd) {
+    if(!has_file_opened)
+        return -1;
+    
+    has_file_opened = 0;
+
+    return 0;
+}
+
+int32_t file_read(int32_t fd, void *buf, int32_t nbytes) {
+    if(!has_file_opened)
+        return -1;
+    
+    int ret = read_data(dentry_opened_file.inode_idx, opened_file_offset, buf, nbytes);
+
+    if(ret == -1)
+        return -1;
+    
+    opened_file_offset += ret;
+
+    return ret;
+}
+
+int32_t file_write(int32_t fd, void *buf, int32_t nbytes) {
+    return -1;
+}
+
+int32_t directory_open(const uint8_t *filename) {
+    if(filename == NULL)
+        return -1;
+    
+    dentry_t dentry;
+    if(read_dentry_by_name(filename, &dentry) == -1)
+        return -1;
+    
+    // If file_type is not directory.
+    if(dentry.file_type != 1)
+        return -1;
+    
+    memcpy(&dentry_opened_directory, &dentry, sizeof(dentry_t));
+
+    opened_directory_offset = 0;
+
+    has_directory_opened = 1;
+    
+    return 0;
+}
+
+int32_t directory_read(int32_t fd, void *buf, int32_t nbytes) {
+    if(!has_directory_opened)
+        return -1;
+    
+    boot_block_t *boot_block = (boot_block_t *)file_system_base_address;
+    // Return 0 represents EOI.
+    if(opened_directory_offset >= boot_block->num_dentry)
+        return 0;
+
+    dentry_t dentry;
+    read_dentry_by_index(opened_directory_offset, &dentry);
+
+    int i = 0;
+    while(i < nbytes) {
+        *((char *)buf + i) = dentry.file_name[i];
+        i++;
+        // If last copied character is end-of-line, stop here.
+        if(dentry.file_name[i - 1] == '\0')
+            break;
+    }
+
+    opened_directory_offset++;
+
+    return i;
+}
+
+int32_t directory_close(int32_t fd) {
+    if(!has_directory_opened)
+        return -1;
+    
+    has_directory_opened = 0;
+
+    return 0;
+}
+
+int32_t directory_write(int32_t fd, void *buf, int32_t nbytes) {
+    return -1;
+}
+
 int file_system_init(uint32_t base_address) {
     if(base_address == NULL)
         return -1;
 
     file_system_base_address = base_address;
+
+    has_file_opened = 0;
+    has_directory_opened = 0;
 
     return 0;
 }
