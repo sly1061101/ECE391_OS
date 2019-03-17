@@ -44,7 +44,8 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry) {
     if(file_system_base_address == NULL)
         return -1;
 
-    if(index >= 63)
+    boot_block_t *boot_block = (boot_block_t *)file_system_base_address;
+    if(index >= boot_block->num_dentry)
         return -1;
 
     dentry_t *source = (dentry_t *)((char *)file_system_base_address + sizeof(boot_block_t) + index * sizeof(dentry_t));
