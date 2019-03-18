@@ -156,8 +156,6 @@ static unsigned char keyboard_map_shift[MAP_SIZE] =
         0, /* All other keys are undefined */
 };
 
-extern int rtc_test;
-
 /* Initialize the keyboard */
 extern void keyboard_init();
 

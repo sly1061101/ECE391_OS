@@ -6,8 +6,6 @@
 
 #define LOW_BIT_OFFSER 0x01
 
-int rtc_test = 0;
-
 int caps_flag = 0;
 int shift_flag = 0;
 int alt_flag = 0;
@@ -71,10 +69,6 @@ void keyboard_handler()
       
       }
 
-      if (keyboard_map[(unsigned char)keycode] == 'r')
-        rtc_test = 1;
-      else
-        rtc_test = 0;
     }
 
     send_eoi(KEYBOARD_IRQ);
