@@ -23,8 +23,9 @@ void clear(void) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
-
-    update_cursor(origin,origin);
+    screen_x = 0;
+    screen_y = 0;
+    update_cursor(screen_x,screen_y);
 }
 
 // Resource: https://wiki.osdev.org/Text_Mode_Cursor
@@ -194,9 +195,10 @@ void putc(uint8_t c) {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
+    screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+    screen_x %= NUM_COLS;
+    update_cursor(screen_x,screen_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);
