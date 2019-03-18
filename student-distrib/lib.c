@@ -83,6 +83,35 @@ static void scroll()
     screen_y = NUM_ROWS - 1;
 }
 
+/*
+*   backspace_delete
+*   Inputs: none
+*   Return Value: void
+*   Function:  perform backspace
+*/
+void backspace_delete() {
+    // If already at beginning of first line, do nothing.
+    if(screen_x == 0 && screen_y == 0) {
+        return;
+    }
+    // If at beginning of not first line, go back to previous line.
+    else if (screen_x == 0 && screen_y > 0) {
+        screen_x = NUM_COLS - 1;     
+        screen_y--;
+    }
+    // Otherwise just go backware.
+    else {
+        screen_x--;         
+    }                    
+
+    // change registers 
+    *(uint8_t *)(video_mem+ ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;  
+    
+    //update the cursor
+    update_cursor(screen_x, screen_y);                                            
+}
+
 /* Standard printf().
  * Only supports the following format strings:
  * %%  - print a literal '%' character

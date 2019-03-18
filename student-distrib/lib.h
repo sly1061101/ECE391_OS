@@ -28,7 +28,7 @@ int8_t* strncpy(int8_t* dest, const int8_t*src, uint32_t n);
 
 /* Update Curosr Position */
 void update_cursor(int x, int y);
-
+extern void backspace_delete();
 
 /* Userspace address-check functions */
 int32_t bad_userspace_addr(const void* addr, int32_t len);

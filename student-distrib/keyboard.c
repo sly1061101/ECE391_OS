@@ -68,6 +68,9 @@ void keyboard_handler()
       printf("%c", keycode_processed);
       
       }
+      else if(backspace_flag) {
+        backspace_delete();
+      }
 
     }
 
@@ -127,11 +130,16 @@ char char_converter(unsigned char input)
 
   case ENTER:
     terminal_flag = READY;
-    //default_flag = RELEASED;
+    default_flag = PRESSED;
     break;
 
   case BACKSPACE:
-    backspace_flag = READY;
+    backspace_flag = PRESSED;
+    default_flag = RELEASED;
+    break;
+
+  case BACKSPACE + HIGH_ORDER_BIT_MASK:
+    backspace_flag = RELEASED;
     default_flag = RELEASED;
     break;
 
