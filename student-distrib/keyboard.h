@@ -173,7 +173,7 @@ extern int terminal_open();
 extern int terminal_close();
 
 /* Read FROM the keyboard buffer into buf, return number of bytes read */
-extern int terminal_read(char* buf);
+extern int terminal_read(char* buf, int size);
 
 /* Write TO the screen from buff, return number of bytes written or -1 */
 extern int terminal_write(char* buf, int size);

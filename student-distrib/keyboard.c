@@ -17,7 +17,8 @@ int backspace_flag = 0;
 unsigned char keyboard_buffer[BUFFER_SIZE];
 int keyboard_buffer_size;
 
-unsigned char display_buff[MAP_SIZE];
+unsigned char terminal_buffer[BUFFER_SIZE * 10];
+int terminal_buffer_size;
 /* keyboard_init
  * Initialized the keyboard
  * Inputs: None
@@ -206,22 +207,52 @@ int terminal_close()
     return 0;
 }
 
+int terminal_buffer_move(int size)
+{
+  int i;
+  for(i = 0; i < terminal_buffer_size - size; i++)
+  {
+    terminal_buffer[i] = terminal_buffer[i + size];
+  }
+  terminal_buffer_size -= size; 
+  return i;
+}
+
 /* terminal_read
  * Read FROM the keyboard buffer into buf
  * Inputs: keyboard buffer
  * Outputs: number of bytes read
  * Side Effects: none
  */
-int terminal_read(char* buf)
+int terminal_read(char* buf, int size)
 {
-    if(terminal_flag){
-      memcpy(buf,keyboard_buffer,sizeof(keyboard_buffer));
-      // clear keyboard_buffer
-      memset(keyboard_buffer,0,sizeof(keyboard_buffer));
-      terminal_flag = 0;
-      return sizeof(keyboard_buffer);
+    // if(terminal_flag){
+    //   memcpy(buf,keyboard_buffer,sizeof(keyboard_buffer));
+    //   // clear keyboard_buffer
+    //   memset(keyboard_buffer,0,sizeof(keyboard_buffer));
+    //   terminal_flag = 0;
+    //   return sizeof(keyboard_buffer);
+    // }
+    // return -1; // is it necessary?
+
+
+    if(size < 0)
+    {
+      return -1;
     }
-    return -1; // is it necessary?
+    else
+    {
+      int i;
+      for(i = 0; i < size; i++)
+      {
+        
+        buf[i] = terminal_buffer[i];
+        if(terminal_buffer[i] == '\n')
+          break;
+      }
+      terminal_buffer_move(i);
+      return i;
+    }
 }
 
 
