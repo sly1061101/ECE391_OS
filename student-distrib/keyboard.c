@@ -234,8 +234,23 @@ int terminal_read(char* buf)
 int terminal_write(char* buf, int size)
 
 {
-    memcpy(display_buff,buf,sizeof(display_buff));
+    //printf((int8_t*)buf);
+
+    if(buf==NULL || size < 0)
+    {
+      return -1;
+    }
+    
+    else
+    {
+      int i;
+      for(i = 0; i < size; i++)
+      {
+        putc(buf[i]);
+      }
     return size;
+    }
+
     //return -1;
 }
 
