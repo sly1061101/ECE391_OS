@@ -35,6 +35,9 @@ static int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_
 int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry) {
     if(file_system_base_address == NULL)
         return -1;
+    
+    if(strlen(fname) > 32)
+        return -1;
 
     boot_block_t *boot_block = (boot_block_t *)file_system_base_address;
     dentry_t *source;
