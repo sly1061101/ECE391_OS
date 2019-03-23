@@ -12,6 +12,7 @@
 #define LOW_BIT_OFFSER 0x01
 
 #define MAP_SIZE 128
+#define BUFFER_SIZE 128
 
 #define LEFT_SHIFT 0x2A
 #define LEFT_SHIFT_R 0xAA

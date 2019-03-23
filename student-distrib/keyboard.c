@@ -14,7 +14,9 @@ int default_flag = 0;
 int terminal_flag = 0;
 int backspace_flag = 0;
 
-unsigned char keyboard_buffer[MAP_SIZE];
+unsigned char keyboard_buffer[BUFFER_SIZE];
+int keyboard_buffer_size;
+
 unsigned char display_buff[MAP_SIZE];
 /* keyboard_init
  * Initialized the keyboard
@@ -24,6 +26,7 @@ unsigned char display_buff[MAP_SIZE];
  */
 void keyboard_init()
 {
+  keyboard_buffer_size = 0;
   interrupt_handler[KEYBOARD_IR_VEC] = keyboard_handler;
   enable_irq(KEYBOARD_IRQ);
 }
@@ -55,21 +58,32 @@ void keyboard_handler()
 
       if ((keycode_processed == 'l' || keycode_processed == 'L') && ctrl_flag ==1)
       {
-        clear(); // clear screen
-        memset(keyboard_buffer,0,sizeof(keyboard_buffer)); // not sure
-        
+        // First clear the screen, then print the content in keyboard_buffer so that the current line is preversed.
+        clear();
+        terminal_write(keyboard_buffer, keyboard_buffer_size);        
         send_eoi(KEYBOARD_IRQ);
         return;
       }
 
+      if(backspace_flag) {
+        if(keyboard_buffer_size > 0) {
+          backspace_delete();
+          keyboard_buffer_size--;
+        }
+      }
+
       //printf("%c",EMPTY);
       if(default_flag){
+        if(keyboard_buffer_size < BUFFER_SIZE) {
+          printf("%c", keycode_processed);
+          keyboard_buffer[keyboard_buffer_size] = keycode_processed;
+          keyboard_buffer_size++;
 
-      printf("%c", keycode_processed);
-      
-      }
-      else if(backspace_flag) {
-        backspace_delete();
+          if(keycode_processed == '\n') {
+            // TODO: Store the current keyboard_buffer to terminal_buffer.
+            keyboard_buffer_size = 0;
+          }
+        }
       }
 
     }
