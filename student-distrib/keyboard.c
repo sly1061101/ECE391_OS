@@ -19,6 +19,26 @@ int keyboard_buffer_size;
 
 unsigned char terminal_buffer[BUFFER_SIZE * 10];
 int terminal_buffer_size;
+
+// Write something into the terminal buffer.
+int terminal_buffer_write(char *buf, int size) {
+  if(buf == NULL || size < 0)
+    return -1;
+
+  // If terminal buffer does not have enough space to hold the input.
+  if(BUFFER_SIZE * 10 - terminal_buffer_size < size)
+    return -1;
+
+  int i = 0;
+  while(i < size) {
+    terminal_buffer[terminal_buffer_size] = buf[i];
+    terminal_buffer_size++;
+    i++;
+  }
+
+  return i;
+}
+
 /* keyboard_init
  * Initialized the keyboard
  * Inputs: None
@@ -81,7 +101,7 @@ void keyboard_handler()
           keyboard_buffer_size++;
 
           if(keycode_processed == '\n') {
-            // TODO: Store the current keyboard_buffer to terminal_buffer.
+            terminal_buffer_write(keyboard_buffer, keyboard_buffer_size);
             keyboard_buffer_size = 0;
           }
         }
