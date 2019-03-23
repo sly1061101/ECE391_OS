@@ -209,6 +209,9 @@ int terminal_close()
 
 int terminal_buffer_move(int size)
 {
+  if(size > terminal_buffer_size)
+    return -1;
+
   int i;
   for(i = 0; i < terminal_buffer_size - size; i++)
   {
@@ -243,12 +246,14 @@ int terminal_read(char* buf, int size)
     else
     {
       int i;
-      for(i = 0; i < size; i++)
+      for(i = 0; i < size && i < terminal_buffer_size; i++)
       {
-        
         buf[i] = terminal_buffer[i];
         if(terminal_buffer[i] == '\n')
+        {
+          i++;
           break;
+      }
       }
       terminal_buffer_move(i);
       return i;
