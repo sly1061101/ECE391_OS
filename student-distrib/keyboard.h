@@ -26,6 +26,7 @@
 #define CTRL 0x1D
 #define ALT 0x38
 #define EMPTY 0x00
+#define ESC 0x01
 
 #define PRESSED 1
 #define RELEASED 0
@@ -75,7 +76,7 @@ static unsigned char keyboard_map[MAP_SIZE] =
         0, /* All other keys are undefined */
 };
 
-// Scancode for keyboard when TAB is pressed
+// Scancode for keyboard when CAPSLOCK is pressed
 static unsigned char keyboard_map_caps[MAP_SIZE] =
     {
         0, 27, '1', '2', '3', '4', '5', '6', '7', '8',    /* 9 */

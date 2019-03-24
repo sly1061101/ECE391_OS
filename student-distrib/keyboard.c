@@ -12,6 +12,7 @@ int alt_flag = 0;
 int ctrl_flag = 0;
 int default_flag = 0;
 int backspace_flag = 0;
+int esc_flag = 0;
 
 unsigned char keyboard_buffer[KEYBOARD_BUFFER_CAPACITY];
 int keyboard_buffer_size;
@@ -95,6 +96,8 @@ void keyboard_handler()
       //printf("%c",EMPTY);
       if(default_flag){
         if(keyboard_buffer_size < KEYBOARD_BUFFER_CAPACITY) {
+          if(keycode_processed !=0 && keycode_processed != '\t'){
+         
           printf("%c", keycode_processed);
           keyboard_buffer[keyboard_buffer_size] = keycode_processed;
           keyboard_buffer_size++;
@@ -102,6 +105,7 @@ void keyboard_handler()
           if(keycode_processed == '\n') {
             terminal_buffer_write(keyboard_buffer, keyboard_buffer_size);
             keyboard_buffer_size = 0;
+          }
           }
         }
       }
@@ -116,7 +120,7 @@ void keyboard_handler()
  * Helper fcuntion to handle special input cases
  * Inputs: input -- unsigned char from KEYBOARD_DATA_PORT
  * Outputs: converted character 
- * Side Effects:s none
+ * Side Effects: none
  */
 char char_converter(unsigned char input)
 {
@@ -172,6 +176,16 @@ char char_converter(unsigned char input)
     default_flag = RELEASED;
     break;
 
+  case ESC:
+    esc_flag = PRESSED;
+    default_flag = RELEASED;
+    break;
+  
+  case ESC + HIGH_ORDER_BIT_MASK:
+    esc_flag = RELEASED;
+    default_flag = RELEASED;
+    break;
+  
   default:
     default_flag = PRESSED;
     break;
