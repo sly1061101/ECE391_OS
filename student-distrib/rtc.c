@@ -72,6 +72,16 @@ void rtc_handler(void)
 
 void rtc_set_freq(int freq)
 {
+
+    cli();
+    outb(REG_SET|REG_A, RTC_REG_PORT);
+    unsigned char prev = inb(RTC_REG_DATA);
+    outb(REG_SET|REG_A, RTC_REG_PORT);
+    outb((prev & 0xF0)|rate, RTC_REG_DATA);
+    sti();
+
+
+
 }
 
 int32_t rtc_open()
