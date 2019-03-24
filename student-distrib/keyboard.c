@@ -14,10 +14,10 @@ int default_flag = 0;
 int terminal_flag = 0;
 int backspace_flag = 0;
 
-unsigned char keyboard_buffer[BUFFER_SIZE];
+unsigned char keyboard_buffer[KEYBOARD_BUFFER_CAPACITY];
 int keyboard_buffer_size;
 
-unsigned char terminal_buffer[BUFFER_SIZE * 10];
+unsigned char terminal_buffer[TERMINAL_BUFFER_CAPACITY];
 int terminal_buffer_size;
 
 // Write something into the terminal buffer.
@@ -26,7 +26,7 @@ int terminal_buffer_write(char *buf, int size) {
     return -1;
 
   // If terminal buffer does not have enough space to hold the input.
-  if(BUFFER_SIZE * 10 - terminal_buffer_size < size)
+  if(TERMINAL_BUFFER_CAPACITY - terminal_buffer_size < size)
     return -1;
 
   int i = 0;
@@ -95,7 +95,7 @@ void keyboard_handler()
 
       //printf("%c",EMPTY);
       if(default_flag){
-        if(keyboard_buffer_size < BUFFER_SIZE) {
+        if(keyboard_buffer_size < KEYBOARD_BUFFER_CAPACITY) {
           printf("%c", keycode_processed);
           keyboard_buffer[keyboard_buffer_size] = keycode_processed;
           keyboard_buffer_size++;
@@ -273,7 +273,7 @@ int terminal_read(char* buf, int size)
         {
           i++;
           break;
-      }
+        }
       }
       terminal_buffer_move(i);
       return i;
@@ -304,7 +304,7 @@ int terminal_write(char* buf, int size)
       {
         putc(buf[i]);
       }
-    return size;
+      return size;
     }
 
     //return -1;
