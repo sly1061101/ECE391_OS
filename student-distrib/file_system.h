@@ -5,6 +5,13 @@
 
 #ifndef ASM
 
+#define FILE_NAME_MAX_LENGTH 32
+
+// Constants for file types.
+#define RTC_FILE 0
+#define DIRECTORY_FILE 1
+#define REGULAR_FILE 2
+
 extern int file_system_init(uint32_t base_address);
 
 extern int32_t file_open(const uint8_t *filename);
