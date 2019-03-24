@@ -29,8 +29,7 @@
 
 #define PRESSED 1
 #define RELEASED 0
-#define READY 1
-#define NOT_READY 0
+
 /* The scancode for key release (`break') is obtained from it by setting the high order bit */
 #define HIGH_ORDER_BIT_MASK 0x80
 

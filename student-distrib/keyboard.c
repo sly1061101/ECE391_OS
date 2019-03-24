@@ -11,7 +11,6 @@ int shift_flag = 0;
 int alt_flag = 0;
 int ctrl_flag = 0;
 int default_flag = 0;
-int terminal_flag = 0;
 int backspace_flag = 0;
 
 unsigned char keyboard_buffer[KEYBOARD_BUFFER_CAPACITY];
@@ -163,11 +162,6 @@ char char_converter(unsigned char input)
     default_flag = RELEASED;
     break;
 
-  case ENTER:
-    terminal_flag = READY;
-    default_flag = PRESSED;
-    break;
-
   case BACKSPACE:
     backspace_flag = PRESSED;
     default_flag = RELEASED;
@@ -249,16 +243,6 @@ int terminal_buffer_move(int size)
  */
 int terminal_read(char* buf, int size)
 {
-    // if(terminal_flag){
-    //   memcpy(buf,keyboard_buffer,sizeof(keyboard_buffer));
-    //   // clear keyboard_buffer
-    //   memset(keyboard_buffer,0,sizeof(keyboard_buffer));
-    //   terminal_flag = 0;
-    //   return sizeof(keyboard_buffer);
-    // }
-    // return -1; // is it necessary?
-
-
     if(size < 0)
     {
       return -1;
