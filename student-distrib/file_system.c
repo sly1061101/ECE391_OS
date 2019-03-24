@@ -185,7 +185,8 @@ int32_t directory_read(int32_t fd, void *buf, int32_t nbytes) {
     read_dentry_by_index(opened_directory_offset, &dentry);
 
     int i = 0;
-    while(i < nbytes) {
+    // Maximum filename length is 32 according to filesystem specification.
+    while(i < nbytes && i < 32) {
         *((char *)buf + i) = dentry.file_name[i];
         i++;
         // If last copied character is end-of-line, stop here.
