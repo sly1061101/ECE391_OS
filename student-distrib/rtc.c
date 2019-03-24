@@ -69,3 +69,27 @@ void rtc_handler(void)
     send_eoi(IRQ8);
     sti();
 }
+
+void rtc_set_freq(int freq)
+{
+}
+
+int32_t rtc_open()
+{
+    return 0;
+}
+
+int32_t rtc_close()
+{
+    return 0;
+}
+
+int32_t rtc_read()
+{
+    return 0;
+}
+
+int32_t rtc_write()
+{
+    return 0;
+}
