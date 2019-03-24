@@ -13,7 +13,6 @@ static void scroll();
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
-static int origin = 0;
 
 /* void clear(void);
  * Inputs: void
