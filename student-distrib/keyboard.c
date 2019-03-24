@@ -220,7 +220,12 @@ int terminal_close()
 {
     return 0;
 }
-
+/*
+*Move the terminal buffer to the left by size
+*Input: size for move
+*Output: number of the movement 
+*Side Effects: none
+*/
 int terminal_buffer_move(int size)
 {
   if(size > terminal_buffer_size)
