@@ -2,8 +2,6 @@
 
 #include "lib.h"
 
-static uint32_t file_system_base_address = NULL;
-
 typedef struct dentry {
     uint8_t file_name[32];
     uint32_t file_type;
@@ -28,6 +26,9 @@ typedef struct data_block {
     uint8_t data[4096];
 } data_block_t;
 
+static uint32_t file_system_base_address = NULL;
+static boot_block_t *boot_block = NULL;
+
 static int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry);
 static int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry);
 static int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
@@ -39,7 +40,6 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry) {
     if(strlen(fname) > 32)
         return -1;
 
-    boot_block_t *boot_block = (boot_block_t *)file_system_base_address;
     dentry_t *source;
 
     int i;
@@ -58,7 +58,6 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry) {
     if(file_system_base_address == NULL)
         return -1;
 
-    boot_block_t *boot_block = (boot_block_t *)file_system_base_address;
     if(index >= boot_block->num_dentry)
         return -1;
 
@@ -72,7 +71,6 @@ int32_t read_data(uint32_t inode_index, uint32_t offset, uint8_t *buf, uint32_t 
     if(file_system_base_address == NULL)
         return -1;
 
-    boot_block_t *boot_block = (boot_block_t *)file_system_base_address;
     if(inode_index >= boot_block->num_inode)
         return -1;
 
@@ -101,9 +99,6 @@ int32_t read_data(uint32_t inode_index, uint32_t offset, uint8_t *buf, uint32_t 
 dentry_t dentry_opened_file;
 int32_t has_file_opened;
 uint32_t opened_file_offset;
-dentry_t dentry_opened_directory;
-int32_t has_directory_opened;
-uint32_t opened_directory_offset;
 
 int32_t file_open(const uint8_t *filename) {
     if(filename == NULL)
@@ -153,6 +148,10 @@ int32_t file_write(int32_t fd, void *buf, int32_t nbytes) {
     return -1;
 }
 
+dentry_t dentry_opened_directory;
+int32_t has_directory_opened;
+uint32_t opened_directory_offset;
+
 int32_t directory_open(const uint8_t *filename) {
     if(filename == NULL)
         return -1;
@@ -178,7 +177,6 @@ int32_t directory_read(int32_t fd, void *buf, int32_t nbytes) {
     if(!has_directory_opened)
         return -1;
     
-    boot_block_t *boot_block = (boot_block_t *)file_system_base_address;
     // Return 0 represents EOI.
     if(opened_directory_offset >= boot_block->num_dentry)
         return 0;
@@ -218,6 +216,7 @@ int file_system_init(uint32_t base_address) {
         return -1;
 
     file_system_base_address = base_address;
+    boot_block = (boot_block_t *)file_system_base_address;
 
     has_file_opened = 0;
     has_directory_opened = 0;
