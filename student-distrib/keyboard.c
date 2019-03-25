@@ -233,6 +233,13 @@ void keyboard_handler()
           }
           }
         }
+        // Special case when already has 128 characters and enter is pressed.
+        else if(keyboard_buffer_size == KEYBOARD_BUFFER_CAPACITY 
+                  && keycode_processed == '\n') {
+          printf("%c", keycode_processed);
+          terminal_buffer_write(keyboard_buffer, keyboard_buffer_size);
+          keyboard_buffer_size = 0;
+        }
       }
 
     }
