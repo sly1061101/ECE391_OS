@@ -55,11 +55,13 @@ extern int32_t read_data (uint32_t inode, uint32_t offset,
 // File system interfaces.
 extern int file_system_init(uint32_t base_address);
 
+// File open/close/read/write
 extern int32_t file_open(const uint8_t *filename);
 extern int32_t file_close(int32_t fd);
 extern int32_t file_read(int32_t fd, void *buf, int32_t nbytes);
 extern int32_t file_write(int32_t fd, void *buf, int32_t nbytes);
 
+// Directory open/close/read/write
 extern int32_t directory_open(const uint8_t *filename);
 extern int32_t directory_close(int32_t fd);
 extern int32_t directory_read(int32_t fd, void *buf, int32_t nbytes);

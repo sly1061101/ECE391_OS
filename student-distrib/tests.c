@@ -249,7 +249,15 @@ int pdt_and_pt_test(){
 
 
 /* Checkpoint 2 tests */
-
+/* test_directory_operations
+*
+* Test functionalities in directory operation.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether directory open/close
+   read/write are correct.
+* Files: file_system.c
+*/
 int test_directory_operations(){
 	TEST_HEADER;
 
@@ -257,7 +265,7 @@ int test_directory_operations(){
 	int ret;
 	int fd;
 
-	ret = directory_open(".");
+	ret = directory_open((uint8_t*)".");
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
@@ -289,6 +297,15 @@ int test_directory_operations(){
 	return result;
 }
 
+/* test_file_by_name
+*
+* Test functionalities in file system operation.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether file open/close
+   read/write are correct.
+* Files: file_system.c
+*/
 int test_file_by_name(char *filename){
 	TEST_HEADER;
 
@@ -297,7 +314,7 @@ int test_file_by_name(char *filename){
 	int fd;
 	int i;
 
-	ret = file_open(filename);
+	ret = file_open((uint8_t *)filename);
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
@@ -330,6 +347,15 @@ int test_file_by_name(char *filename){
 	return result;
 }
 
+/* test_file_by_index_in_boot_block
+*
+* Test file by reading index in boot block
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether reading data through boot block
+	index is correct
+* Files: file_system.c
+*/
 int test_file_by_index_in_boot_block(int index){
 	TEST_HEADER;
 
@@ -337,6 +363,7 @@ int test_file_by_index_in_boot_block(int index){
 	int ret;
 	int i;
 
+	// read_dentry_by_index success return = 0
 	dentry_t dentry;
 	ret = read_dentry_by_index(index, &dentry);
 	if(ret == -1) {
@@ -349,8 +376,9 @@ int test_file_by_index_in_boot_block(int index){
 		result = FAIL;
 	}
 
+	// test helper function read_data 
 	char buf[FILE_READ_BUF_SIZE];
-	ret = read_data(dentry.inode_idx, 0, buf, FILE_READ_BUF_SIZE);
+	ret = read_data(dentry.inode_idx, 0, (uint8_t *)buf, FILE_READ_BUF_SIZE);
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
@@ -363,6 +391,16 @@ int test_file_by_index_in_boot_block(int index){
 	return result;
 }
 
+/* test_keyboard_read_and_terminal_write
+*
+* Test keyboard and terminal functionalities
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether termial open/close/read
+	/wirte are correct
+* Files: keyboard.c
+*/
+
 int test_keyboard_read_and_terminal_write(){
 	TEST_HEADER;
 
@@ -370,27 +408,31 @@ int test_keyboard_read_and_terminal_write(){
 	int ret;
 	int fd;
 
+  // test terminal_open()
 	ret = terminal_open();
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
 	}
 
+	 // test terminal_read()
 	char buf[KEYBOARD_BUFFER_CAPACITY];
 	printf("Please type something:\n");
-	ret = terminal_read(fd, buf, KEYBOARD_BUFFER_CAPACITY);
+	ret = terminal_read(fd, (unsigned char*)buf, KEYBOARD_BUFFER_CAPACITY);
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
 	}
 
+  // test terminal_write()
 	printf("Printing it to screen with terminal_write():\n");
-	ret = terminal_write(fd, buf, ret);
+	ret = terminal_write(fd, (unsigned char*)buf, ret);
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
 	}
-
+  
+	// test terminal_close()
 	ret = terminal_close(fd);
 	if(ret == -1) {
 		assertion_failure();
@@ -400,6 +442,16 @@ int test_keyboard_read_and_terminal_write(){
 	return result;
 }
 
+/* test_terminal_write_size_larger_than_actual
+*
+* Test terminal write corner case
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether termial wirte can handle
+  inconsistent byte size
+* Files: keyboard.c
+*/
+
 int test_terminal_write_size_larger_than_actual(){
 	
 	TEST_HEADER;
@@ -408,7 +460,8 @@ int test_terminal_write_size_larger_than_actual(){
 	int ret;
   char string_to_display[STRING_SIZE+1] = "helloworld";
   
-	ret = terminal_write(1, string_to_display, LARGER_STRING_SIZE);
+	// test terminal write buf size inconsistent
+	ret = terminal_write(1, (unsigned char*)string_to_display, LARGER_STRING_SIZE);
 
 	putc('\n');
 	
@@ -420,6 +473,16 @@ int test_terminal_write_size_larger_than_actual(){
 	return result;
 	
 }
+
+/* rtc_freq_test
+*
+* Test rtc frequency setting
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether rtc frequency can be
+	modified correctly
+* Files: keyboard.c
+*/
 
 int rtc_freq_test(){
 
@@ -436,7 +499,7 @@ int rtc_freq_test(){
 
 	// test rtc_open()
 	printf("Testing rtc_open(). Frequency should be set to 2 hz.\n");
-	ret = rtc_open("");
+	ret = rtc_open((uint8_t*)"");
 	if(ret != 0) {
 		assertion_failure();
 		result = FAIL;

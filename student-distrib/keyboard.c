@@ -130,6 +130,7 @@ unsigned char keyboard_map_shift[MAP_SIZE] =
   0, /* All other keys are undefined */
 };
 
+// special flags 
 int caps_flag = 0;
 int shift_flag = 0;
 int alt_flag = 0;
@@ -144,7 +145,13 @@ int keyboard_buffer_size;
 unsigned char terminal_buffer[TERMINAL_BUFFER_CAPACITY];
 int terminal_buffer_size;
 
-// Write something into the terminal buffer.
+/* terminal_buffer_write
+* Write something into the terminal buffer.
+* Input: size for buffer and buf pointer
+* Output: number of the movement 
+* Side Effects: none
+*/
+
 int terminal_buffer_write(unsigned char *buf, int size) {
   if(buf == NULL || size < 0)
     return -1;
@@ -163,11 +170,11 @@ int terminal_buffer_write(unsigned char *buf, int size) {
   return i;
 }
 
-/*
-*Move the terminal buffer to the left by size
-*Input: size for move
-*Output: number of the movement 
-*Side Effects: none
+/* terminal_buffer_move
+* Move the terminal buffer to the left by size
+* Input: size for move
+* Output: number of the movement 
+* Side Effects: none
 */
 int terminal_buffer_move(int size)
 {
@@ -236,7 +243,8 @@ void keyboard_handler()
           keyboard_buffer_size--;
         }
       }
-
+      
+      // print known default scancode
       if(default_flag){
         if(keyboard_buffer_size < KEYBOARD_BUFFER_CAPACITY) {
           if(keycode_processed !=0 && keycode_processed != '\t'){
@@ -244,6 +252,7 @@ void keyboard_handler()
             keyboard_buffer[keyboard_buffer_size] = keycode_processed;
             keyboard_buffer_size++;
 
+            // terminal buffer write when ENTER is pressed
             if(keycode_processed == '\n') {
               terminal_buffer_write(keyboard_buffer, keyboard_buffer_size);
               keyboard_buffer_size = 0;
@@ -337,6 +346,7 @@ char char_converter(unsigned char input)
       break;
   }
 
+  // CAPSLOCK and SHIFT corner case
   if (caps_flag)
   {
     if(shift_flag)
