@@ -249,7 +249,15 @@ int pdt_and_pt_test(){
 
 
 /* Checkpoint 2 tests */
-
+/* test_directory_operations
+*
+* Test functionalities in directory operation.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether directory open/close
+   read/write are correct.
+* Files: file_system.c
+*/
 int test_directory_operations(){
 	TEST_HEADER;
 
@@ -289,11 +297,20 @@ int test_directory_operations(){
 	return result;
 }
 
+/* test_file_by_name
+*
+* Test functionalities in file system operation.
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether file open/close
+   read/write are correct.
+* Files: file_system.c
+*/
 int test_file_by_name(char *filename){
 	TEST_HEADER;
 
 	int result = PASS;
-	int32_t ret;
+	int ret;
 	int fd;
 	int i;
 
@@ -330,11 +347,20 @@ int test_file_by_name(char *filename){
 	return result;
 }
 
+/* test_file_by_index_in_boot_block
+*
+* Test file by reading index in boot block
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether reading data through boot block
+	index is correct
+* Files: file_system.c
+*/
 int test_file_by_index_in_boot_block(int index){
 	TEST_HEADER;
 
 	int result = PASS;
-	int32_t ret;
+	int ret;
 	int i;
 
 	dentry_t dentry;
@@ -362,6 +388,16 @@ int test_file_by_index_in_boot_block(int index){
 
 	return result;
 }
+
+/* test_keyboard_read_and_terminal_write
+*
+* Test keyboard and terminal functionalities
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether termial open/close/read
+	/wirte are correct
+* Files: keyboard.c
+*/
 
 int test_keyboard_read_and_terminal_write(){
 	TEST_HEADER;
@@ -400,6 +436,16 @@ int test_keyboard_read_and_terminal_write(){
 	return result;
 }
 
+/* test_terminal_write_size_larger_than_actual
+*
+* Test terminal write corner case
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether termial wirte can handle
+  inconsistent byte size
+* Files: keyboard.c
+*/
+
 int test_terminal_write_size_larger_than_actual(){
 	
 	TEST_HEADER;
@@ -420,6 +466,16 @@ int test_terminal_write_size_larger_than_actual(){
 	return result;
 	
 }
+
+/* rtc_freq_test
+*
+* Test rtc frequency setting
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether rtc frequency can be
+	modified correctly
+* Files: keyboard.c
+*/
 
 int rtc_freq_test(){
 
