@@ -71,50 +71,6 @@ void rtc_handler(void)
     sti();
 }
 
-// void rtc_set_freq(int freq)
-// {
-
-//     cli();
-//     outb(REG_SET|REG_A, RTC_REG_PORT);
-//     unsigned char prev = inb(RTC_REG_DATA);
-//     outb(REG_SET|REG_A, RTC_REG_PORT);
-//     outb((prev & 0xF0)|rate, RTC_REG_DATA);
-//     sti();
-
-
-
-// }
-
-// int32_t rtc_open()
-// {
-//     return 0;
-// }
-
-// int32_t rtc_close()
-// {
-//     return 0;
-// }
-
-// int32_t rtc_read()
-// {
-//     return 0;
-// }
-
-// int32_t rtc_write()
-// {
-//     return 0;
-// }
-
-
-
-
-
-
-
-
-
-
-
 int32_t rtc_open (const uint8_t* filename){
     //change the rate:
     unsigned n_rate =2;//rate change to 2 herz?
@@ -135,14 +91,13 @@ int32_t rtc_close(int32_t fd){
     
     return 0;
 }
+
 int32_t rtc_read(int32_t fd,void*buf,int32_t nbytes){
 	
 	while(!is_interrupt);
     is_interrupt = 0;
 	return 0;
 }
-
-
 
 
 int32_t write(int32_t fd,const void*buf,int32_t nbytes){
