@@ -275,6 +275,33 @@ int print_all_files_in_directory(){
 	return result;
 }
 
+int test_file_by_name(char *filename){
+	TEST_HEADER;
+
+	int result = PASS;
+	int ret;
+	int i;
+
+	ret = file_open(filename);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	char buf[10000];
+	ret = file_read(0, buf, 10000);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+	
+	for(i = 0; i < ret; ++i)
+		putc(buf[i]);
+	putc('\n');
+
+	return result;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -290,4 +317,5 @@ void launch_tests(){
 	// TEST_OUTPUT("Dereference null memory address.", deref_null_address());
 	TEST_OUTPUT("PDT and PT test", pdt_and_pt_test());
 	TEST_OUTPUT("print_all_files_in_directory", print_all_files_in_directory());
+	TEST_OUTPUT("test_file_by_name", test_file_by_name("frame1.txt"));
 }
