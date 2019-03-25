@@ -14,6 +14,15 @@
 #define VAL_INVALID 888
 #define RTC_TEST_COUNT 30
 #define STRING_SIZE 10
+#define LARGER_STRING_SIZE (STRING_SIZE + 10)
+#define FILE_READ_BUF_SIZE 10000
+
+// Constants that actually make no sense but just to
+//  eliminate magic numbers.
+#define VAL_10 10
+#define VAL_5 5
+#define VAL_184 184
+
 // global variable defined in rtc.c that increment per rtc interrupt handler
 extern int rtc_counter;
 
@@ -46,7 +55,7 @@ int idt_test(){
 
 	int i;
 	int result = PASS;
-	for (i = 0; i < 10; ++i){
+	for (i = 0; i < VAL_10; ++i){
 		if ((idt[i].offset_15_00 == NULL) && 
 			(idt[i].offset_31_16 == NULL)){
 			assertion_failure();
@@ -81,7 +90,7 @@ int idt_test(){
 */
 int exception_de_test(){
     TEST_HEADER;
-    int a = 5;
+    int a = VAL_5;
     int b = 0;
     int c;
 	c = a/b;
@@ -221,7 +230,7 @@ int pdt_and_pt_test(){
 
 	// Test page table.
 	for(i = 0; i < NUM_PT_SIZE; ++i) {
-		if(i == 184) {
+		if(i == VAL_184) {
 			if(page_table[i].present != 1) {
 				assertion_failure();
 				result = FAIL;
@@ -294,8 +303,8 @@ int test_file_by_name(char *filename){
 		result = FAIL;
 	}
 
-	char buf[10000];
-	ret = file_read(fd, buf, 10000);
+	char buf[FILE_READ_BUF_SIZE];
+	ret = file_read(fd, buf, FILE_READ_BUF_SIZE);
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
@@ -306,7 +315,7 @@ int test_file_by_name(char *filename){
 	putc('\n');
 
 	// file write must return -1
-	ret = file_write(fd, "test", 4);
+	ret = file_write(fd, "test", sizeof("test"));
 	if(ret != -1) {
 		assertion_failure();
 		result = FAIL;
@@ -340,8 +349,8 @@ int test_file_by_index_in_boot_block(int index){
 		result = FAIL;
 	}
 
-	char buf[10000];
-	ret = read_data(dentry.inode_idx, 0, buf, 10000);
+	char buf[FILE_READ_BUF_SIZE];
+	ret = read_data(dentry.inode_idx, 0, buf, FILE_READ_BUF_SIZE);
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
@@ -367,9 +376,9 @@ int test_keyboard_read_and_terminal_write(){
 		result = FAIL;
 	}
 
-	char buf[128];
+	char buf[KEYBOARD_BUFFER_CAPACITY];
 	printf("Please type something:\n");
-	ret = terminal_read(fd, buf, 128);
+	ret = terminal_read(fd, buf, KEYBOARD_BUFFER_CAPACITY);
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
@@ -399,7 +408,7 @@ int test_terminal_write_size_larger_than_actual(){
 	int ret;
   char string_to_display[STRING_SIZE+1] = "helloworld";
   
-	ret = terminal_write(1, string_to_display, 20);
+	ret = terminal_write(1, string_to_display, LARGER_STRING_SIZE);
 
 	putc('\n');
 	
@@ -423,6 +432,8 @@ int rtc_freq_test(){
 	// unused fd to confirm system calls
 	int32_t fd;
 
+	char char_to_echo = '1';
+
 	// test rtc_open()
 	printf("Testing rtc_open(). Frequency should be set to 2 hz.\n");
 	ret = rtc_open("");
@@ -432,7 +443,7 @@ int rtc_freq_test(){
 	}
 
 	for(i = 0; i < RTC_TEST_COUNT; i++){
-		putc('1');
+		putc(char_to_echo);
 		rtc_read(fd, NULL, 0);
 	}
 	putc('\n');
@@ -450,7 +461,7 @@ int rtc_freq_test(){
 		}
 
 		for(i = 0; i < RTC_TEST_COUNT; i++){
-			putc('1');
+			putc(char_to_echo);
 			rtc_read(fd, freq_pointer, 0);
 		}
 		putc('\n');

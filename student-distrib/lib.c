@@ -29,6 +29,15 @@ void clear(void) {
     update_cursor(screen_x, screen_y);
 }
 
+// Constants that actually make no sense but just to
+//  eliminate magic numbers.
+#define PORT_0x3D4 0x3D4
+#define PORT_0x3D5 0x3D5
+#define ALL_MASK 0xFF
+#define CMD_0x0E 0x0E
+#define CMD_0x0F 0x0F
+#define VAL_8 8
+
 // Resource: https://wiki.osdev.org/Text_Mode_Cursor
 /* update_cursor
  * Inputs: screen position for cursor
@@ -38,10 +47,10 @@ void update_cursor(int x, int y)
 {
 	uint16_t pos = y * NUM_COLS + x;
  
-	outb(0x0F, 0x3D4);
-	outb((uint8_t) (pos & 0xFF), 0x3D5);
-	outb(0x0E,0x3D4);
-	outb((uint8_t) ((pos >> 8) & 0xFF),0x3D5);
+	outb(CMD_0x0F, PORT_0x3D4);
+	outb((uint8_t) (pos & ALL_MASK), PORT_0x3D5);
+	outb(CMD_0x0E,PORT_0x3D4);
+	outb((uint8_t) ((pos >> VAL_8) & ALL_MASK),PORT_0x3D5);
 }
 
 /*
