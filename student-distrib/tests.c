@@ -241,11 +241,13 @@ int pdt_and_pt_test(){
 
 /* Checkpoint 2 tests */
 
-int print_all_files_in_directory(){
+int test_directory_operations(){
 	TEST_HEADER;
 
 	int result = PASS;
 	int ret;
+	int fd;
+
 	ret = directory_open(".");
 	if(ret == -1) {
 		assertion_failure();
@@ -254,12 +256,25 @@ int print_all_files_in_directory(){
 
 	char buf[FILE_NAME_MAX_LENGTH + 1];
 	buf[FILE_NAME_MAX_LENGTH] = '\0';
-	while((ret = directory_read(0, buf, FILE_NAME_MAX_LENGTH)) != 0) {
+	while((ret = directory_read(fd, buf, FILE_NAME_MAX_LENGTH)) != 0) {
 		if(ret == -1) {
 			assertion_failure();
 			result = FAIL;
 		}
 		printf("%s\n", buf);
+	}
+
+	// directory write must return -1
+	ret = directory_write(fd, "test", 4);
+	if(ret != -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	ret = directory_close(fd);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
 	}
 
 	return result;
@@ -433,7 +448,7 @@ void launch_tests(){
 	TEST_OUTPUT("PDT and PT test", pdt_and_pt_test());
 
 	// CP2 Tests
-	TEST_OUTPUT("print_all_files_in_directory", print_all_files_in_directory());
+	TEST_OUTPUT("test_directory_operations", test_directory_operations());
 	TEST_OUTPUT("test_file_by_name", test_file_by_name("frame1.txt"));
 	TEST_OUTPUT("test_file_by_index_in_boot_block", test_file_by_index_in_boot_block(11));
 	TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
