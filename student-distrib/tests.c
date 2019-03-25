@@ -3,6 +3,7 @@
 #include "lib.h"
 #include "paging.h"
 #include "file_system.h"
+#include "keyboard.h"
 
 #define PASS 1
 #define FAIL 0
@@ -335,6 +336,30 @@ int test_file_by_index_in_boot_block(int index){
 	return result;
 }
 
+int test_keyboard_read_and_terminal_write(){
+	TEST_HEADER;
+
+	int result = PASS;
+	int ret;
+
+	char buf[128];
+	printf("Please type something:\n");
+	ret = terminal_read(1, buf, 128);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	printf("Printing it to screen with terminal_write():\n");
+	ret = terminal_write(1, buf, ret);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	return result;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -352,4 +377,5 @@ void launch_tests(){
 	TEST_OUTPUT("print_all_files_in_directory", print_all_files_in_directory());
 	TEST_OUTPUT("test_file_by_name", test_file_by_name("frame1.txt"));
 	TEST_OUTPUT("test_file_by_index_in_boot_block", test_file_by_index_in_boot_block(11));
+	TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
 }
