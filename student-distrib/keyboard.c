@@ -172,6 +172,7 @@ int terminal_buffer_write(unsigned char *buf, int size) {
 void keyboard_init()
 {
   keyboard_buffer_size = 0;
+  terminal_buffer_size = 0;
   interrupt_handler[KEYBOARD_IR_VEC] = keyboard_handler;
   enable_irq(KEYBOARD_IRQ);
 }
