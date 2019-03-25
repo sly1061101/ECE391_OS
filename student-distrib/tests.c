@@ -4,12 +4,17 @@
 #include "paging.h"
 #include "file_system.h"
 #include "keyboard.h"
+#include "rtc.h"
 
 #define PASS 1
 #define FAIL 0
 #define KB_IDT 0x21
 #define RTC_IDT 0x28
 #define N_BYTES_INT 4
+#define VAL_INVALID 888
+#define COUNT 50
+// global variable defined in rtc.c that increment per rtc interrupt handler
+extern int rtc_counter;
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -360,6 +365,38 @@ int test_keyboard_read_and_terminal_write(){
 	return result;
 }
 
+int rtc_freq_test(){
+	TEST_HEADER;
+	int i;
+	// unused fd to confirm system calls
+	int32_t fd;
+
+	// unused fd
+	int32_t freq_pointer[1];
+
+	// check rtc read/wirte under various frequencies ( under valid  range)
+	for(freq_pointer[0] = VAL_2; freq_pointer[0] <= VAL_1024; freq_pointer[0] <<= 1 ){
+		clear();
+		rtc_write(fd,freq_pointer,N_BYTES_INT);
+		for(i=0;i<COUNT;i++){
+			putc('1');
+			rtc_read(fd,freq_pointer,0);
+		}
+	}
+	
+	// check invalid frequency
+	freq_pointer[0] = VAL_INVALID;
+
+	if(rtc_write(fd,freq_pointer,N_BYTES_INT)!=0){
+		printf("Invalid frequency at %d\n",freq_pointer[0]);
+	}
+
+	int result = PASS;
+  // TODO
+	return result;
+}
+
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -377,5 +414,6 @@ void launch_tests(){
 	TEST_OUTPUT("print_all_files_in_directory", print_all_files_in_directory());
 	TEST_OUTPUT("test_file_by_name", test_file_by_name("frame1.txt"));
 	TEST_OUTPUT("test_file_by_index_in_boot_block", test_file_by_index_in_boot_block(11));
-	TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
+	//TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
+	TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
 }
