@@ -16,6 +16,7 @@
 #define IRQ8 8
 
 volatile int is_interrupt;
+int rtc_counter = 0;
 //void rtc_handler(void);
 
 /*reference from https://wiki.osdev.org/RTC */
@@ -55,15 +56,18 @@ void rtc_init(void)
 
 }
 
+
 /* rtc_handler
  * rtc interrupt handler 
  * Inputs: None
  * Outputs: None
  * Side Effects: none
  */
+
 void rtc_handler(void)
 {
     cli();
+    rtc_counter++;
     is_interrupt = 1;
     outb(RTC_REG_C,RTC_REG_PORT);	// select register C
     inb(RTC_REG_DATA);		// just throw away contents
@@ -73,7 +77,7 @@ void rtc_handler(void)
 
 int32_t rtc_open (const uint8_t* filename){
     //change the rate:
-    unsigned n_rate =2;//rate change to 2 herz?
+    unsigned n_rate =2;//rate change to 2 herz
     cli();
     outb(RTC_REG_A,RTC_REG_PORT);
     char prev=inb(RTC_REG_DATA);
@@ -130,35 +134,35 @@ int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes){
 
 void set_freq(int32_t freq){
     switch(freq){
-      case 1024:
-                freq = 0x6;
+      case VAL_1024:
+                freq = FREQ_1024;
                 break;
-      case 512:
-                freq = 0x7;
+      case VAL_512:
+                freq = FREQ_512;
                 break;
-      case 256:
-                freq = 0x8;
+      case VAL_256:
+                freq = FREQ_256;
                 break;
-      case 128:
-                freq = 0x9;
+      case VAL_128:
+                freq = FREQ_128;
                 break;
-      case 64:
-                freq = 0xA;
+      case VAL_64:
+                freq = FREQ_64;
                 break;
-      case 32:
-                freq = 0xB;
+      case VAL_32:
+                freq = FREQ_32;
                 break;
-      case 16:
-                freq = 0xC;
+      case VAL_16:
+                freq = FREQ_16;
                 break;
-      case 8:
-                freq = 0xD;
+      case VAL_8:
+                freq = FREQ_8;
                 break;
-      case 4:
-                freq = 0xE;
+      case VAL_4:
+                freq = FREQ_4;
                 break;
-      case 2:
-                freq = 0xF;
+      case VAL_2:
+                freq = FREQ_2;
                 break;
       default:
                 freq = -1;
