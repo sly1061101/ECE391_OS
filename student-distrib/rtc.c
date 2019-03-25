@@ -88,9 +88,6 @@ int32_t rtc_open (const uint8_t* filename){
     outb(RTC_REG_A,RTC_REG_PORT);
     outb((prev & HIGH_FOUR_BITS_MASK) | freq, RTC_REG_DATA);
     sti();
-	//enable irq
-	enable_irq(IRQ8);
-	
 	return 0;
 
 }
