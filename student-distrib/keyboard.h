@@ -64,7 +64,4 @@ extern int terminal_read(int32_t fd, unsigned char* buf, int size);
 /* Write TO the screen from buff, return number of bytes written or -1 */
 extern int terminal_write(int32_t fd, unsigned char* buf, int size);
 
-
-
-
 #endif /* _KEYBOARD_H */
