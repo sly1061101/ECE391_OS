@@ -12,7 +12,7 @@
 #define RTC_IDT 0x28
 #define N_BYTES_INT 4
 #define VAL_INVALID 888
-#define COUNT 50
+#define COUNT 30
 #define STRING_SIZE 10
 // global variable defined in rtc.c that increment per rtc interrupt handler
 extern int rtc_counter;
@@ -241,23 +241,6 @@ int pdt_and_pt_test(){
 
 /* Checkpoint 2 tests */
 
-/* rtc_freq_test
-*
-* Test different rtc frequencies
-* Inputs: None
-* Outputs: PASS/FAIL
-* Coverage: Test whether rtc is setting up correctly.
-* Files: rtc.c
-*/
-// int rtc_freq_test(){
-// 	TEST_HEADER;
-// 	int i;
-// 	int result = PASS;
-//   // TODO
-// 	return result;
-// }
-
-
 int print_all_files_in_directory(){
 	TEST_HEADER;
 
@@ -388,7 +371,11 @@ int test_terminal_write_invalid(){
 }
 
 int rtc_freq_test(){
+
 	TEST_HEADER;
+
+	int result = PASS;
+
 	int i;
 	// unused fd to confirm system calls
 	int32_t fd;
@@ -400,9 +387,9 @@ int rtc_freq_test(){
 	for(freq_pointer[0] = VAL_2; freq_pointer[0] <= VAL_1024; freq_pointer[0] <<= 1 ){
 		clear();
 		rtc_write(fd,freq_pointer,N_BYTES_INT);
-		for(i=0;i<COUNT;i++){
+		for(i = 0; i < COUNT; i++){
 			putc('1');
-			rtc_read(fd,freq_pointer,0);
+			rtc_read(fd, freq_pointer, 0);
 		}
 	}
 	
@@ -410,11 +397,10 @@ int rtc_freq_test(){
 	freq_pointer[0] = VAL_INVALID;
 
 	if(rtc_write(fd,freq_pointer,N_BYTES_INT)!=0){
+		clear();
 		printf("Invalid frequency at %d\n",freq_pointer[0]);
 	}
 
-	int result = PASS;
-  // TODO
 	return result;
 }
 
@@ -433,10 +419,12 @@ void launch_tests(){
 	// TEST_OUTPUT("Dereference memory address that is not in page table", deref_invalid_address());
 	// TEST_OUTPUT("Dereference null memory address.", deref_null_address());
 	TEST_OUTPUT("PDT and PT test", pdt_and_pt_test());
+
+	// CP2 Tests
 	TEST_OUTPUT("print_all_files_in_directory", print_all_files_in_directory());
 	TEST_OUTPUT("test_file_by_name", test_file_by_name("frame1.txt"));
 	TEST_OUTPUT("test_file_by_index_in_boot_block", test_file_by_index_in_boot_block(11));
-	//TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
-	//TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
+	TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
 	TEST_OUTPUT("test_terminal_write_invalid",test_terminal_write_invalid());
+	TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
 }
