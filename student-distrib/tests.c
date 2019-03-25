@@ -375,6 +375,7 @@ int rtc_freq_test(){
 	TEST_HEADER;
 
 	int result = PASS;
+	int ret;
 
 	int i;
 	// unused fd to confirm system calls
@@ -385,20 +386,31 @@ int rtc_freq_test(){
 
 	// check rtc read/wirte under various frequencies ( under valid  range)
 	for(freq_pointer[0] = VAL_2; freq_pointer[0] <= VAL_1024; freq_pointer[0] <<= 1 ){
-		clear();
-		rtc_write(fd,freq_pointer,N_BYTES_INT);
+		printf("Current frequency = %d hz\n", freq_pointer[0]);
+
+		ret = rtc_write(fd,freq_pointer,N_BYTES_INT);
+		if(ret != 0) {
+			assertion_failure();
+			result = FAIL;
+		}
+
 		for(i = 0; i < COUNT; i++){
 			putc('1');
 			rtc_read(fd, freq_pointer, 0);
 		}
+		putc('\n');
 	}
 	
 	// check invalid frequency
 	freq_pointer[0] = VAL_INVALID;
-
-	if(rtc_write(fd,freq_pointer,N_BYTES_INT)!=0){
-		clear();
-		printf("Invalid frequency at %d\n",freq_pointer[0]);
+	printf("Testing invalid frequency = %d hz.\n", freq_pointer[0]);
+	ret = rtc_write(fd,freq_pointer,N_BYTES_INT);
+	if(ret == 0) {
+		assertion_failure();
+		result = FAIL;
+	}
+	else {
+		printf("Pass. Invalid frequency rejected by driver.\n");
 	}
 
 	return result;
