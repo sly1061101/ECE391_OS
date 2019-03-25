@@ -9,7 +9,16 @@ static uint32_t file_system_base_address = NULL;
 // Pointer to boot block in file system.
 static boot_block_t *boot_block = NULL;
 
-// Three helper routines that actually interacts with file system.
+/*read_dentry_by_name
+* DISCRIPTION: fill in the dentry t block passed as their second argument with the file name, file
+               type, and inode number for the file, then return 0.
+* INPUT:    const uint8_t fname
+            dentry_t dentry
+* OUTPUT: NONE
+* RETURN VALUE: 0 on success, -1 on failure
+* SIDE EFFECTS: return -1 on failure, indicating a non-existent file. 0 on success, indicating dentry t block passed as their second argument with the file name
+*/
+
 int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry) {
     if(file_system_base_address == NULL)
         return -1;
@@ -33,6 +42,16 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry) {
     return -1;
 }
 
+/*read_dentry_by_index
+* DISCRIPTION: fill in the dentry t block passed as their second argument with the parameter index, file
+               type, and inode number for the file, then return 0.
+* INPUT:    uint32_t index
+            dentry_t dentry
+* OUTPUT: NONE
+* RETURN VALUE: 0 on success, -1 on failure
+* SIDE EFFECTS: return -1 on failure, indicating a invalid index. 0 on success, indicating dentry t block passed as their second argument with the parameter index.
+*/
+
 int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry) {
     if(file_system_base_address == NULL)
         return -1;
@@ -46,6 +65,17 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry) {
 
     return 0;
 }
+
+/*read_data
+* DISCRIPTION: reading up to length bytes starting from position offset in the file with inode number inode and returning the number of bytes read and placed in the buffer
+* INPUT:    uint8_t inode_index
+            uint8_t offset
+            uint8_t *buf
+            uint8_t length
+* OUTPUT: NONE
+* RETURN VALUE: byte_count on success, -1 on failure
+* SIDE EFFECTS: Same as DESCRIPTION.
+*/
 
 int32_t read_data(uint32_t inode_index, uint32_t offset, uint8_t *buf, uint32_t length) {
     if(file_system_base_address == NULL)
@@ -86,6 +116,14 @@ dentry_t dentry_opened_file;
 int32_t has_file_opened;
 uint32_t opened_file_offset;
 
+/*file_open
+* DISCRIPTION: perform type-specific initialization on file operations jump table.
+* INPUT:    const uint8_t *filename
+* OUTPUT: NONE
+* RETURN VALUE: 0 on success, -1 on failure
+* SIDE EFFECTS: Same as DESCRIPTION.
+*/
+
 int32_t file_open(const uint8_t *filename) {
     if(filename == NULL)
         return -1;
@@ -107,6 +145,14 @@ int32_t file_open(const uint8_t *filename) {
     return 0;
 }
 
+/*file_close
+* DISCRIPTION: perform type-specific close on file operations jump table.
+* INPUT:    int32_t fd
+* OUTPUT: NONE
+* RETURN VALUE: 0 if file is closed and open later, -1 if file is already closed.
+* SIDE EFFECTS: Close file table
+*/
+
 int32_t file_close(int32_t fd) {
     if(!has_file_opened)
         return -1;
@@ -115,6 +161,16 @@ int32_t file_close(int32_t fd) {
 
     return 0;
 }
+
+/*file_read
+* DISCRIPTION: perform type-specific read on file operations jump table.
+* INPUT:    int32_t fd
+            int32_t nbytes
+            void* buf
+* OUTPUT: NONE
+* RETURN VALUE: -1 if read operation is unsuccessful, ret if read data is successful
+* SIDE EFFECTS: read data from file table
+*/
 
 int32_t file_read(int32_t fd, void *buf, int32_t nbytes) {
     if(!has_file_opened)
@@ -129,6 +185,16 @@ int32_t file_read(int32_t fd, void *buf, int32_t nbytes) {
 
     return ret;
 }
+
+/*file_write
+* DISCRIPTION: perform type-specific write on file operations jump table.
+* INPUT:    int32_t fd
+            int32_t nbytes
+            void* buf
+* OUTPUT: NONE
+* RETURN VALUE: -1 if write operation is unsuccessful, 0 if writing operation is successful
+* SIDE EFFECTS: write data to file table
+*/
 
 int32_t file_write(int32_t fd, void *buf, int32_t nbytes) {
     return -1;
@@ -160,6 +226,16 @@ int32_t directory_open(const uint8_t *filename) {
     return 0;
 }
 
+/*directroy_read
+* DISCRIPTION:  read files filename by filename, including “.”
+* INPUT:    int32_t fd
+            int32_t nbytes
+            void* buf
+* OUTPUT: NONE
+* RETURN VALUE: -1 if write operation is unsuccessful, index of data in dentry if read is successful.
+* SIDE EFFECTS: write data to file table
+*/
+
 int32_t directory_read(int32_t fd, void *buf, int32_t nbytes) {
     if(!has_directory_opened)
         return -1;
@@ -186,6 +262,14 @@ int32_t directory_read(int32_t fd, void *buf, int32_t nbytes) {
     return i;
 }
 
+/*directroy_close
+* DISCRIPTION:  close directory and return 0;
+* INPUT:    int32_t fd
+* OUTPUT: NONE
+* RETURN VALUE: -1 if write operation is unsuccessful, index of data in dentry if read is successful.
+* SIDE EFFECTS: return -1 if directory is already closed, return 0 if closed later manually.
+*/
+
 int32_t directory_close(int32_t fd) {
     if(!has_directory_opened)
         return -1;
@@ -195,11 +279,27 @@ int32_t directory_close(int32_t fd) {
     return 0;
 }
 
+/*directroy_write
+* DISCRIPTION:  do nothing and return -1.
+* INPUT:    int32_t fd
+            int32_t nbytes
+            void* buf
+* OUTPUT: NONE
+* RETURN VALUE: -1.
+* SIDE EFFECTS: return -1.
+*/
+
 int32_t directory_write(int32_t fd, void *buf, int32_t nbytes) {
     return -1;
 }
 
-// File system initialization function.
+/*file_system_init
+* DISCRIPTION:  initialize file system
+* INPUT:        uint32_t base_address
+* OUTPUT: NONE
+* RETURN VALUE: 0
+* SIDE EFFECTS: initialize file system.
+*/
 int file_system_init(uint32_t base_address) {
     if(base_address == NULL)
         return -1;
