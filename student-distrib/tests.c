@@ -2,6 +2,7 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "paging.h"
+#include "file_system.h"
 
 #define PASS 1
 #define FAIL 0
@@ -250,6 +251,29 @@ int pdt_and_pt_test(){
 // }
 
 
+int print_all_files_in_directory(){
+	TEST_HEADER;
+
+	int result = PASS;
+	int ret;
+	ret = directory_open(".");
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	char buf[FILE_NAME_MAX_LENGTH + 1];
+	buf[FILE_NAME_MAX_LENGTH] = '\0';
+	while((ret = directory_read(0, buf, FILE_NAME_MAX_LENGTH)) != 0) {
+		if(ret == -1) {
+			assertion_failure();
+			result = FAIL;
+		}
+		printf("%s\n", buf);
+	}
+
+	return result;
+}
 
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -265,4 +289,5 @@ void launch_tests(){
 	// TEST_OUTPUT("Dereference memory address that is not in page table", deref_invalid_address());
 	// TEST_OUTPUT("Dereference null memory address.", deref_null_address());
 	TEST_OUTPUT("PDT and PT test", pdt_and_pt_test());
+	TEST_OUTPUT("print_all_files_in_directory", print_all_files_in_directory());
 }
