@@ -387,6 +387,9 @@ int terminal_read(int32_t fd, unsigned char* buf, int size)
   if(size < 0)
     return -1;
 
+  // Wait until terminal buffer is not empty.
+  while(terminal_buffer_size == 0);
+
   int i;
   for(i = 0; i < size && i < terminal_buffer_size; i++)
   {

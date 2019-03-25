@@ -4,42 +4,12 @@
 
 #define DENTRY_START_OFFSET 64
 
-// Structs corresponding to file system specification.
-typedef struct dentry {
-    uint8_t file_name[32];
-    uint32_t file_type;
-    uint32_t inode_idx;
-    uint8_t reserved[24];
-} dentry_t;
-
-typedef struct boot_block {
-    uint32_t num_dentry;
-    uint32_t num_inode;
-    uint32_t num_data_block;
-    uint8_t reserved[52];
-    dentry_t dentry[63];
-} boot_block_t;
-
-typedef struct inode {
-    uint32_t length;
-    uint32_t date_block_idx[1023];
-} inode_t;
-
-typedef struct data_block {
-    uint8_t data[4096];
-} data_block_t;
-
 // Starting address for file system in kernel memory.
 static uint32_t file_system_base_address = NULL;
 // Pointer to boot block in file system.
 static boot_block_t *boot_block = NULL;
 
 // Three helper routines that actually interacts with file system.
-static int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry);
-static int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry);
-static int32_t read_data (uint32_t inode, uint32_t offset, 
-                                uint8_t* buf, uint32_t length);
-
 int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry) {
     if(file_system_base_address == NULL)
         return -1;

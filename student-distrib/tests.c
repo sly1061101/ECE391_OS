@@ -2,12 +2,20 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "paging.h"
+#include "file_system.h"
+#include "keyboard.h"
+#include "rtc.h"
 
 #define PASS 1
 #define FAIL 0
 #define KB_IDT 0x21
 #define RTC_IDT 0x28
 #define N_BYTES_INT 4
+#define VAL_INVALID 888
+#define RTC_TEST_COUNT 30
+#define STRING_SIZE 10
+// global variable defined in rtc.c that increment per rtc interrupt handler
+extern int rtc_counter;
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -233,22 +241,243 @@ int pdt_and_pt_test(){
 
 /* Checkpoint 2 tests */
 
-/* rtc_freq_test
-*
-* Test different rtc frequencies
-* Inputs: None
-* Outputs: PASS/FAIL
-* Coverage: Test whether rtc is setting up correctly.
-* Files: rtc.c
-*/
-// int rtc_freq_test(){
-// 	TEST_HEADER;
-// 	int i;
-// 	int result = PASS;
-//   // TODO
-// 	return result;
-// }
+int test_directory_operations(){
+	TEST_HEADER;
 
+	int result = PASS;
+	int ret;
+	int fd;
+
+	ret = directory_open(".");
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	char buf[FILE_NAME_MAX_LENGTH + 1];
+	buf[FILE_NAME_MAX_LENGTH] = '\0';
+	while((ret = directory_read(fd, buf, FILE_NAME_MAX_LENGTH)) != 0) {
+		if(ret == -1) {
+			assertion_failure();
+			result = FAIL;
+		}
+		printf("%s\n", buf);
+	}
+
+	// directory write must return -1
+	ret = directory_write(fd, "test", 4);
+	if(ret != -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	ret = directory_close(fd);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	return result;
+}
+
+int test_file_by_name(char *filename){
+	TEST_HEADER;
+
+	int result = PASS;
+	int ret;
+	int fd;
+	int i;
+
+	ret = file_open(filename);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	char buf[10000];
+	ret = file_read(fd, buf, 10000);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+	
+	for(i = 0; i < ret; ++i)
+		putc(buf[i]);
+	putc('\n');
+
+	// file write must return -1
+	ret = file_write(fd, "test", 4);
+	if(ret != -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	ret = file_close(fd);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	return result;
+}
+
+int test_file_by_index_in_boot_block(int index){
+	TEST_HEADER;
+
+	int result = PASS;
+	int ret;
+	int i;
+
+	dentry_t dentry;
+	ret = read_dentry_by_index(index, &dentry);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	if(dentry.file_type != REGULAR_FILE) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	char buf[10000];
+	ret = read_data(dentry.inode_idx, 0, buf, 10000);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+	
+	for(i = 0; i < ret; ++i)
+		putc(buf[i]);
+	putc('\n');
+
+	return result;
+}
+
+int test_keyboard_read_and_terminal_write(){
+	TEST_HEADER;
+
+	int result = PASS;
+	int ret;
+	int fd;
+
+	ret = terminal_open();
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	char buf[128];
+	printf("Please type something:\n");
+	ret = terminal_read(fd, buf, 128);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	printf("Printing it to screen with terminal_write():\n");
+	ret = terminal_write(fd, buf, ret);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	ret = terminal_close(fd);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	return result;
+}
+
+int test_terminal_write_size_larger_than_actual(){
+	
+	TEST_HEADER;
+
+	int result = PASS;
+	int ret;
+  char string_to_display[STRING_SIZE+1] = "helloworld";
+  
+	ret = terminal_write(1, string_to_display, 20);
+
+	putc('\n');
+	
+	if(ret != STRING_SIZE) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	return result;
+	
+}
+
+int rtc_freq_test(){
+
+	TEST_HEADER;
+
+	int result = PASS;
+	int ret;
+
+	int i;
+	// unused fd to confirm system calls
+	int32_t fd;
+
+	// test rtc_open()
+	printf("Testing rtc_open(). Frequency should be set to 2 hz.\n");
+	ret = rtc_open("");
+	if(ret != 0) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	for(i = 0; i < RTC_TEST_COUNT; i++){
+		putc('1');
+		rtc_read(fd, NULL, 0);
+	}
+	putc('\n');
+
+	printf("Testing rtc_write() and rtc_read().\n");
+	int32_t freq_pointer[1];
+	// check rtc read/wirte under various frequencies ( under valid  range)
+	for(freq_pointer[0] = VAL_2; freq_pointer[0] <= VAL_1024; freq_pointer[0] <<= 1 ){
+		printf("Set frequency = %d hz\n", freq_pointer[0]);
+
+		ret = rtc_write(fd,freq_pointer,N_BYTES_INT);
+		if(ret != 0) {
+			assertion_failure();
+			result = FAIL;
+		}
+
+		for(i = 0; i < RTC_TEST_COUNT; i++){
+			putc('1');
+			rtc_read(fd, freq_pointer, 0);
+		}
+		putc('\n');
+	}
+	
+	// check invalid frequency
+	freq_pointer[0] = VAL_INVALID;
+	printf("Testing setting invalid frequency = %d hz.\n", freq_pointer[0]);
+	ret = rtc_write(fd,freq_pointer,N_BYTES_INT);
+	if(ret == 0) {
+		assertion_failure();
+		result = FAIL;
+	}
+	else {
+		printf("Invalid frequency rejected by driver.\n");
+	}
+
+	printf("Testing rtc_close().\n");
+	ret = rtc_close(fd);
+	if(ret != 0) {
+		assertion_failure();
+		result = FAIL;
+	}
+	printf("Successfully closed.\n");
+
+	return result;
+}
 
 
 /* Checkpoint 3 tests */
@@ -265,4 +494,12 @@ void launch_tests(){
 	// TEST_OUTPUT("Dereference memory address that is not in page table", deref_invalid_address());
 	// TEST_OUTPUT("Dereference null memory address.", deref_null_address());
 	TEST_OUTPUT("PDT and PT test", pdt_and_pt_test());
+
+	// CP2 Tests
+	TEST_OUTPUT("test_directory_operations", test_directory_operations());
+	TEST_OUTPUT("test_file_by_name", test_file_by_name("frame1.txt"));
+	TEST_OUTPUT("test_file_by_index_in_boot_block", test_file_by_index_in_boot_block(11));
+	TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
+	TEST_OUTPUT("test_terminal_write_size_larger_than_actual",test_terminal_write_size_larger_than_actual());
+	TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
 }
