@@ -433,9 +433,11 @@ int terminal_write(int32_t fd, unsigned char* buf, int size)
       int i;
       for(i = 0; i < size; i++)
       {
+        if(buf[i] == '\0')
+          break;
         putc(buf[i]);
       }
-      return size;
+      return i;
     }
 
     //return -1;
