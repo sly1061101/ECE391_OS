@@ -12,7 +12,7 @@
 #define RTC_IDT 0x28
 #define N_BYTES_INT 4
 #define VAL_INVALID 888
-#define COUNT 30
+#define RTC_TEST_COUNT 30
 #define STRING_SIZE 10
 // global variable defined in rtc.c that increment per rtc interrupt handler
 extern int rtc_counter;
@@ -410,12 +410,25 @@ int rtc_freq_test(){
 	// unused fd to confirm system calls
 	int32_t fd;
 
-	// unused fd
-	int32_t freq_pointer[1];
+	// test rtc_open()
+	printf("Testing rtc_open(). Frequency should be set to 2 hz.\n");
+	ret = rtc_open("");
+	if(ret != 0) {
+		assertion_failure();
+		result = FAIL;
+	}
 
+	for(i = 0; i < RTC_TEST_COUNT; i++){
+		putc('1');
+		rtc_read(fd, NULL, 0);
+	}
+	putc('\n');
+
+	printf("Testing rtc_write() and rtc_read().\n");
+	int32_t freq_pointer[1];
 	// check rtc read/wirte under various frequencies ( under valid  range)
 	for(freq_pointer[0] = VAL_2; freq_pointer[0] <= VAL_1024; freq_pointer[0] <<= 1 ){
-		printf("Current frequency = %d hz\n", freq_pointer[0]);
+		printf("Set frequency = %d hz\n", freq_pointer[0]);
 
 		ret = rtc_write(fd,freq_pointer,N_BYTES_INT);
 		if(ret != 0) {
@@ -423,7 +436,7 @@ int rtc_freq_test(){
 			result = FAIL;
 		}
 
-		for(i = 0; i < COUNT; i++){
+		for(i = 0; i < RTC_TEST_COUNT; i++){
 			putc('1');
 			rtc_read(fd, freq_pointer, 0);
 		}
@@ -432,15 +445,23 @@ int rtc_freq_test(){
 	
 	// check invalid frequency
 	freq_pointer[0] = VAL_INVALID;
-	printf("Testing invalid frequency = %d hz.\n", freq_pointer[0]);
+	printf("Testing setting invalid frequency = %d hz.\n", freq_pointer[0]);
 	ret = rtc_write(fd,freq_pointer,N_BYTES_INT);
 	if(ret == 0) {
 		assertion_failure();
 		result = FAIL;
 	}
 	else {
-		printf("Pass. Invalid frequency rejected by driver.\n");
+		printf("Invalid frequency rejected by driver.\n");
 	}
+
+	printf("Testing rtc_close().\n");
+	ret = rtc_close(fd);
+	if(ret != 0) {
+		assertion_failure();
+		result = FAIL;
+	}
+	printf("Successfully closed.\n");
 
 	return result;
 }
