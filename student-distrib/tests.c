@@ -7,6 +7,7 @@
 #define FAIL 0
 #define KB_IDT 0x21
 #define RTC_IDT 0x28
+#define N_BYTES_INT 4
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -231,6 +232,25 @@ int pdt_and_pt_test(){
 
 
 /* Checkpoint 2 tests */
+
+/* rtc_freq_test
+*
+* Test different rtc frequencies
+* Inputs: None
+* Outputs: PASS/FAIL
+* Coverage: Test whether rtc is setting up correctly.
+* Files: rtc.c
+*/
+// int rtc_freq_test(){
+// 	TEST_HEADER;
+// 	int i;
+// 	int result = PASS;
+//   // TODO
+// 	return result;
+// }
+
+
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
