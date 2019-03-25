@@ -363,6 +363,7 @@ int test_file_by_index_in_boot_block(int index){
 	int ret;
 	int i;
 
+	// read_dentry_by_index success return = 0
 	dentry_t dentry;
 	ret = read_dentry_by_index(index, &dentry);
 	if(ret == -1) {
@@ -375,6 +376,7 @@ int test_file_by_index_in_boot_block(int index){
 		result = FAIL;
 	}
 
+	// test helper function read_data 
 	char buf[FILE_READ_BUF_SIZE];
 	ret = read_data(dentry.inode_idx, 0, (uint8_t *)buf, FILE_READ_BUF_SIZE);
 	if(ret == -1) {
@@ -406,12 +408,14 @@ int test_keyboard_read_and_terminal_write(){
 	int ret;
 	int fd;
 
+  // test terminal_open()
 	ret = terminal_open();
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
 	}
 
+	 // test terminal_read()
 	char buf[KEYBOARD_BUFFER_CAPACITY];
 	printf("Please type something:\n");
 	ret = terminal_read(fd, (unsigned char*)buf, KEYBOARD_BUFFER_CAPACITY);
@@ -420,13 +424,15 @@ int test_keyboard_read_and_terminal_write(){
 		result = FAIL;
 	}
 
+  // test terminal_write()
 	printf("Printing it to screen with terminal_write():\n");
 	ret = terminal_write(fd, (unsigned char*)buf, ret);
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
 	}
-
+  
+	// test terminal_close()
 	ret = terminal_close(fd);
 	if(ret == -1) {
 		assertion_failure();
@@ -454,6 +460,7 @@ int test_terminal_write_size_larger_than_actual(){
 	int ret;
   char string_to_display[STRING_SIZE+1] = "helloworld";
   
+	// test terminal write buf size inconsistent
 	ret = terminal_write(1, (unsigned char*)string_to_display, LARGER_STRING_SIZE);
 
 	putc('\n');
