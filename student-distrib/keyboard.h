@@ -40,8 +40,11 @@ extern unsigned char keyboard_map[MAP_SIZE];
 /* US Keyboard Layout for CAPSLOCK cases*/
 extern unsigned char keyboard_map_caps[MAP_SIZE];
 
-/* US Keyboard Layout for SHIFT cases*/
-extern unsigned char keyboard_map_shift[MAP_SIZE];
+/* US Keyboard Layout for SHIFT lower cases*/
+extern unsigned char keyboard_map_shift_lower[MAP_SIZE];
+
+/* US Keyboard Layout for SHIFT upper cases*/
+extern unsigned char keyboard_map_shift_upper[MAP_SIZE];
 
 /* Initialize the keyboard */
 extern void keyboard_init();
