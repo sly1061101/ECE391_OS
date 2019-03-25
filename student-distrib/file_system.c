@@ -14,7 +14,7 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry) {
     if(file_system_base_address == NULL)
         return -1;
     
-    if(strlen(fname) > FILE_NAME_MAX_LENGTH)
+    if(strlen((int8_t*)fname) > FILE_NAME_MAX_LENGTH)
         return -1;
 
     dentry_t *source;
@@ -23,7 +23,7 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry) {
     for(i = 0; i < boot_block->num_dentry; ++i) {
         source = (dentry_t *)((char *)file_system_base_address 
                                 + DENTRY_START_OFFSET + i * sizeof(dentry_t));
-        if(strncmp((uint8_t *)fname, (uint8_t *)source->file_name, 
+        if(strncmp((int8_t*)fname, (int8_t*)source->file_name, 
                                                 FILE_NAME_MAX_LENGTH) == 0) {
             read_dentry_by_index(i, dentry);
             return 0;
