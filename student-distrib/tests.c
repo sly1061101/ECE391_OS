@@ -13,6 +13,7 @@
 #define N_BYTES_INT 4
 #define VAL_INVALID 888
 #define COUNT 50
+#define STRING_SIZE 10
 // global variable defined in rtc.c that increment per rtc interrupt handler
 extern int rtc_counter;
 
@@ -365,6 +366,27 @@ int test_keyboard_read_and_terminal_write(){
 	return result;
 }
 
+int test_terminal_write_invalid(){
+	
+	TEST_HEADER;
+
+	int result = PASS;
+	int ret;
+  char string_to_display[STRING_SIZE+1] = "helloworld";
+  
+	ret = terminal_write(1, string_to_display, 20);
+
+	putc('\n');
+	
+	if(ret != STRING_SIZE) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	return result;
+	
+}
+
 int rtc_freq_test(){
 	TEST_HEADER;
 	int i;
@@ -415,5 +437,6 @@ void launch_tests(){
 	TEST_OUTPUT("test_file_by_name", test_file_by_name("frame1.txt"));
 	TEST_OUTPUT("test_file_by_index_in_boot_block", test_file_by_index_in_boot_block(11));
 	//TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
-	TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
+	//TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
+	TEST_OUTPUT("test_terminal_write_invalid",test_terminal_write_invalid());
 }
