@@ -32,6 +32,8 @@ void rtc_init(void)
 {
     unsigned rate = 3;
     cli();
+    is_interrupt = 0;
+
     /*setting the register*/
     outb(RTC_REG_A , RTC_REG_PORT);     // select status register a
     outb(RTC_RAM , RTC_REG_DATA); // write to cmos/rtc ram
@@ -91,13 +93,13 @@ int32_t rtc_open (const uint8_t* filename){
 
 }
 
-int32_t rtc_close(int32_t fd){
-    
+int32_t rtc_close(int32_t fd)
+{
     return 0;
 }
 
-int32_t rtc_read(int32_t fd,void*buf,int32_t nbytes){
-	
+int32_t rtc_read(int32_t fd,void*buf,int32_t nbytes)
+{
     cli();
     is_interrupt = 0;
     sti();
@@ -107,8 +109,8 @@ int32_t rtc_read(int32_t fd,void*buf,int32_t nbytes){
 }
 
 
-int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes){
-	 
+int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes)
+{
 	cli();
     if(buf == NULL || nbytes != 4)
     {
@@ -135,8 +137,10 @@ int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes){
 }
 
 
-void set_freq(int32_t *freq){
-    switch(*freq){
+void set_freq(int32_t *freq)
+{
+    switch(*freq)
+    {
       case VAL_1024:
                 *freq = FREQ_1024;
                 break;
