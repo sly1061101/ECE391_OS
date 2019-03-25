@@ -302,6 +302,39 @@ int test_file_by_name(char *filename){
 	return result;
 }
 
+int test_file_by_index_in_boot_block(int index){
+	TEST_HEADER;
+
+	int result = PASS;
+	int ret;
+	int i;
+
+	dentry_t dentry;
+	ret = read_dentry_by_index(index, &dentry);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	if(dentry.file_type != REGULAR_FILE) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	char buf[10000];
+	ret = read_data(dentry.inode_idx, 0, buf, 10000);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+	
+	for(i = 0; i < ret; ++i)
+		putc(buf[i]);
+	putc('\n');
+
+	return result;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -318,4 +351,5 @@ void launch_tests(){
 	TEST_OUTPUT("PDT and PT test", pdt_and_pt_test());
 	TEST_OUTPUT("print_all_files_in_directory", print_all_files_in_directory());
 	TEST_OUTPUT("test_file_by_name", test_file_by_name("frame1.txt"));
+	TEST_OUTPUT("test_file_by_index_in_boot_block", test_file_by_index_in_boot_block(11));
 }
