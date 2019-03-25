@@ -163,6 +163,26 @@ int terminal_buffer_write(unsigned char *buf, int size) {
   return i;
 }
 
+/*
+*Move the terminal buffer to the left by size
+*Input: size for move
+*Output: number of the movement 
+*Side Effects: none
+*/
+int terminal_buffer_move(int size)
+{
+  if(size > terminal_buffer_size)
+    return -1;
+
+  int i;
+  for(i = 0; i < terminal_buffer_size - size; i++)
+  {
+    terminal_buffer[i] = terminal_buffer[i + size];
+  }
+  terminal_buffer_size -= size; 
+  return i;
+}
+
 /* keyboard_init
  * Initialized the keyboard
  * Inputs: None
@@ -206,7 +226,7 @@ void keyboard_handler()
       {
         // First clear the screen, then print the content in keyboard_buffer so that the current line is preversed.
         clear();
-        terminal_write(keyboard_buffer, keyboard_buffer_size);        
+        terminal_write(1, keyboard_buffer, keyboard_buffer_size);        
         send_eoi(KEYBOARD_IRQ);
         return;
       }
@@ -218,19 +238,17 @@ void keyboard_handler()
         }
       }
 
-      //printf("%c",EMPTY);
       if(default_flag){
         if(keyboard_buffer_size < KEYBOARD_BUFFER_CAPACITY) {
           if(keycode_processed !=0 && keycode_processed != '\t'){
-         
-          printf("%c", keycode_processed);
-          keyboard_buffer[keyboard_buffer_size] = keycode_processed;
-          keyboard_buffer_size++;
+            printf("%c", keycode_processed);
+            keyboard_buffer[keyboard_buffer_size] = keycode_processed;
+            keyboard_buffer_size++;
 
-          if(keycode_processed == '\n') {
-            terminal_buffer_write(keyboard_buffer, keyboard_buffer_size);
-            keyboard_buffer_size = 0;
-          }
+            if(keycode_processed == '\n') {
+              terminal_buffer_write(keyboard_buffer, keyboard_buffer_size);
+              keyboard_buffer_size = 0;
+            }
           }
         }
         // Special case when already has 128 characters and enter is pressed.
@@ -323,9 +341,6 @@ char char_converter(unsigned char input)
     break;
   }
 
-  // if(!default_flag)
-  //   return EMPTY;
-
   if (caps_flag)
   {
     if(shift_flag)
@@ -361,29 +376,10 @@ int terminal_open()
  * Outputs: Return 0
  * Side Effects: none
  */
-int terminal_close()
+int terminal_close(int32_t fd)
 
 {
     return 0;
-}
-/*
-*Move the terminal buffer to the left by size
-*Input: size for move
-*Output: number of the movement 
-*Side Effects: none
-*/
-int terminal_buffer_move(int size)
-{
-  if(size > terminal_buffer_size)
-    return -1;
-
-  int i;
-  for(i = 0; i < terminal_buffer_size - size; i++)
-  {
-    terminal_buffer[i] = terminal_buffer[i + size];
-  }
-  terminal_buffer_size -= size; 
-  return i;
 }
 
 /* terminal_read
@@ -392,7 +388,7 @@ int terminal_buffer_move(int size)
  * Outputs: number of bytes read
  * Side Effects: none
  */
-int terminal_read(unsigned char* buf, int size)
+int terminal_read(int32_t fd, unsigned char* buf, int size)
 {
     if(size < 0)
     {
@@ -422,7 +418,7 @@ int terminal_read(unsigned char* buf, int size)
  * Outputs: number of bytes written or -1
  * Side Effects: none
  */
-int terminal_write(unsigned char* buf, int size)
+int terminal_write(int32_t fd, unsigned char* buf, int size)
 
 {
     //printf((int8_t*)buf);
