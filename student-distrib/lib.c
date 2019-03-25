@@ -8,6 +8,8 @@
 #define NUM_ROWS    25
 #define ATTRIB      0x7
 
+static void scroll();
+
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
@@ -22,6 +24,91 @@ void clear(void) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
+    screen_x = 0;
+    screen_y = 0;
+    update_cursor(screen_x, screen_y);
+}
+
+// Resource: https://wiki.osdev.org/Text_Mode_Cursor
+/* update_cursor
+ * Inputs: screen position for cursor
+ * Return Value: none
+ * Function: Update cursor position*/
+void update_cursor(int x, int y)
+{
+	uint16_t pos = y * NUM_COLS + x;
+ 
+	outb(0x0F, 0x3D4);
+	outb((uint8_t) (pos & 0xFF), 0x3D5);
+	outb(0x0E,0x3D4);
+	outb((uint8_t) ((pos >> 8) & 0xFF),0x3D5);
+}
+
+/*
+*   scroll
+*   Inputs: scroll screen
+*   Return Value: void
+*   Function: enable scrolling
+*/
+static void scroll()
+{
+    int x, y;
+    int new_pos, old_pos;
+
+    // For each row, we copy row x+1 to row x
+    for(x = 0; x < NUM_ROWS - 1; x++)
+    {
+        for(y = 0; y < NUM_COLS; y++)
+        {
+            new_pos = NUM_COLS * x + y;
+            old_pos = NUM_COLS * x + y + NUM_COLS;
+            *(uint8_t *)(video_mem + (new_pos << 1)) = *(video_mem + (old_pos << 1));           
+            *(uint8_t *)(video_mem + (new_pos << 1) + 1) = ATTRIB;
+        }
+    }
+    
+    x = NUM_ROWS-1;
+    
+    // clear last row
+    for(y = 0; y < NUM_COLS; y++)
+    {   
+        new_pos = NUM_COLS * x + y;
+        *(uint8_t *)(video_mem + (new_pos << 1)) = ' ';           
+        *(uint8_t *)(video_mem + (new_pos << 1) + 1) = ATTRIB;
+    }
+    
+    // set screen position to beginning of last row
+    screen_x = 0;
+    screen_y = NUM_ROWS - 1;
+}
+
+/*
+*   backspace_delete
+*   Inputs: none
+*   Return Value: void
+*   Function:  perform backspace
+*/
+void backspace_delete() {
+    // If already at beginning of first line, do nothing.
+    if(screen_x == 0 && screen_y == 0) {
+        return;
+    }
+    // If at beginning of not first line, go back to previous line.
+    else if (screen_x == 0 && screen_y > 0) {
+        screen_x = NUM_COLS - 1;     
+        screen_y--;
+    }
+    // Otherwise just go backware.
+    else {
+        screen_x--;         
+    }                    
+
+    // change registers 
+    *(uint8_t *)(video_mem+ ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;  
+    
+    //update the cursor
+    update_cursor(screen_x, screen_y);                                            
 }
 
 /* Standard printf().
@@ -169,15 +256,20 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
-        screen_y++;
         screen_x = 0;
+        screen_y++;
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        if(screen_x == NUM_COLS) {
+            screen_x = 0;
+            screen_y++;
+        }
     }
+    if(screen_y == NUM_ROWS)
+        scroll();
+    update_cursor(screen_x, screen_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);
