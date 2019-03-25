@@ -359,17 +359,30 @@ int test_keyboard_read_and_terminal_write(){
 
 	int result = PASS;
 	int ret;
+	int fd;
+
+	ret = terminal_open();
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
 
 	char buf[128];
 	printf("Please type something:\n");
-	ret = terminal_read(1, buf, 128);
+	ret = terminal_read(fd, buf, 128);
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
 	}
 
 	printf("Printing it to screen with terminal_write():\n");
-	ret = terminal_write(1, buf, ret);
+	ret = terminal_write(fd, buf, ret);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	ret = terminal_close(fd);
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
@@ -378,7 +391,7 @@ int test_keyboard_read_and_terminal_write(){
 	return result;
 }
 
-int test_terminal_write_invalid(){
+int test_terminal_write_size_larger_than_actual(){
 	
 	TEST_HEADER;
 
@@ -487,6 +500,6 @@ void launch_tests(){
 	TEST_OUTPUT("test_file_by_name", test_file_by_name("frame1.txt"));
 	TEST_OUTPUT("test_file_by_index_in_boot_block", test_file_by_index_in_boot_block(11));
 	TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
-	TEST_OUTPUT("test_terminal_write_invalid",test_terminal_write_invalid());
+	TEST_OUTPUT("test_terminal_write_size_larger_than_actual",test_terminal_write_size_larger_than_actual());
 	TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
 }
