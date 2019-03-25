@@ -144,7 +144,13 @@ int keyboard_buffer_size;
 unsigned char terminal_buffer[TERMINAL_BUFFER_CAPACITY];
 int terminal_buffer_size;
 
-// Write something into the terminal buffer.
+/*
+*Write something into the terminal buffer.
+*Input: size for buffer and buf pointer
+*Output: number of the movement 
+*Side Effects: none
+*/
+
 int terminal_buffer_write(unsigned char *buf, int size) {
   if(buf == NULL || size < 0)
     return -1;
