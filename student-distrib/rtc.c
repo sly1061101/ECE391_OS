@@ -14,6 +14,8 @@
 #define ORED 0x40
 #define RATE_OFFSET 0xF0
 #define IRQ8 8
+#define RTC_IDT_NUM 40
+#define HIGH_FOUR_BITS_MASK 0xF0
 
 volatile int is_interrupt;
 int rtc_counter = 0;
@@ -30,7 +32,7 @@ int rtc_counter = 0;
 */
 void rtc_init(void)
 {
-    unsigned rate = 3;
+    unsigned freq = FREQ_2;
     cli();
     is_interrupt = 0;
 
@@ -48,10 +50,10 @@ void rtc_init(void)
     outb(RTC_REG_A,RTC_REG_PORT);		// set index to register A
     prev=inb(RTC_REG_DATA);	    // get initial value of register A
     outb(RTC_REG_A,RTC_REG_PORT);		// reset index to A
-    outb((prev & RATE_OFFSET) | rate, RTC_REG_DATA); //write only our rate to A. Note, rate is the bottom 4 bits.
+    outb((prev & RATE_OFFSET) | freq, RTC_REG_DATA); //write only our rate to A. Note, rate is the bottom 4 bits.
 
     // Register handler.
-    interrupt_handler[40] = rtc_handler;
+    interrupt_handler[RTC_IDT_NUM] = rtc_handler;
 
     enable_irq(IRQ8);
     sti();
@@ -79,12 +81,12 @@ void rtc_handler(void)
 
 int32_t rtc_open (const uint8_t* filename){
     //change the rate:
-    unsigned n_rate =2;//rate change to 2 herz
+    unsigned freq = FREQ_2;//rate change to 2 herz
     cli();
     outb(RTC_REG_A,RTC_REG_PORT);
     char prev=inb(RTC_REG_DATA);
     outb(RTC_REG_A,RTC_REG_PORT);
-    outb((prev&0xF0)|n_rate,RTC_REG_DATA);
+    outb((prev & HIGH_FOUR_BITS_MASK) | freq, RTC_REG_DATA);
     sti();
 	//enable irq
 	enable_irq(IRQ8);
@@ -112,7 +114,7 @@ int32_t rtc_read(int32_t fd,void*buf,int32_t nbytes)
 int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes)
 {
 	cli();
-    if(buf == NULL || nbytes != 4)
+    if(buf == NULL || nbytes != VAL_4)
     {
         sti();
         return -1;
@@ -130,7 +132,7 @@ int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes)
     outb(RTC_REG_A,RTC_REG_PORT);
     char prev=inb(RTC_REG_DATA);
     outb(RTC_REG_A,RTC_REG_PORT);
-    outb((prev&0xF0)|freq,RTC_REG_DATA);
+    outb((prev&HIGH_FOUR_BITS_MASK)|freq,RTC_REG_DATA);
     sti();
 
     return 0;
