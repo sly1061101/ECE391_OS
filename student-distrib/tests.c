@@ -285,6 +285,7 @@ int test_file_by_name(char *filename){
 
 	int result = PASS;
 	int ret;
+	int fd;
 	int i;
 
 	ret = file_open(filename);
@@ -294,7 +295,7 @@ int test_file_by_name(char *filename){
 	}
 
 	char buf[10000];
-	ret = file_read(0, buf, 10000);
+	ret = file_read(fd, buf, 10000);
 	if(ret == -1) {
 		assertion_failure();
 		result = FAIL;
@@ -303,6 +304,19 @@ int test_file_by_name(char *filename){
 	for(i = 0; i < ret; ++i)
 		putc(buf[i]);
 	putc('\n');
+
+	// file write must return -1
+	ret = file_write(fd, "test", 4);
+	if(ret != -1) {
+		assertion_failure();
+		result = FAIL;
+	}
+
+	ret = file_close(fd);
+	if(ret == -1) {
+		assertion_failure();
+		result = FAIL;
+	}
 
 	return result;
 }
