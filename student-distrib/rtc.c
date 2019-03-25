@@ -98,8 +98,11 @@ int32_t rtc_close(int32_t fd){
 
 int32_t rtc_read(int32_t fd,void*buf,int32_t nbytes){
 	
-	while(!is_interrupt);
+    cli();
     is_interrupt = 0;
+    sti();
+	while(!is_interrupt);
+
 	return 0;
 }
 
@@ -115,7 +118,7 @@ int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes){
     int32_t freq;
     int32_t * buffer = (int32_t*) buf;
     freq = *buffer;
-    set_freq(freq);
+    set_freq(&freq);
     if(freq == -1)
     {
         sti();
@@ -132,40 +135,40 @@ int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes){
 }
 
 
-void set_freq(int32_t freq){
-    switch(freq){
+void set_freq(int32_t *freq){
+    switch(*freq){
       case VAL_1024:
-                freq = FREQ_1024;
+                *freq = FREQ_1024;
                 break;
       case VAL_512:
-                freq = FREQ_512;
+                *freq = FREQ_512;
                 break;
       case VAL_256:
-                freq = FREQ_256;
+                *freq = FREQ_256;
                 break;
       case VAL_128:
-                freq = FREQ_128;
+                *freq = FREQ_128;
                 break;
       case VAL_64:
-                freq = FREQ_64;
+                *freq = FREQ_64;
                 break;
       case VAL_32:
-                freq = FREQ_32;
+                *freq = FREQ_32;
                 break;
       case VAL_16:
-                freq = FREQ_16;
+                *freq = FREQ_16;
                 break;
       case VAL_8:
-                freq = FREQ_8;
+                *freq = FREQ_8;
                 break;
       case VAL_4:
-                freq = FREQ_4;
+                *freq = FREQ_4;
                 break;
       case VAL_2:
-                freq = FREQ_2;
+                *freq = FREQ_2;
                 break;
       default:
-                freq = -1;
+                *freq = -1;
                 break;
     }
 }
