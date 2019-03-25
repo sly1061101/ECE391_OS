@@ -79,6 +79,14 @@ void rtc_handler(void)
     sti();
 }
 
+/*rtc_open
+* DISCRIPTION: open rtc and initialize frequency to 2 herz
+* INPUT: const uint8_t* filename
+* OUTPUT: NONE
+* RETURN VALUE: 0
+* SIDE EFFECTS: rtc is open and frequency set to 2 herz.
+*/
+
 int32_t rtc_open (const uint8_t* filename){
     //change the rate:
     unsigned freq = FREQ_2;//rate change to 2 herz
@@ -92,10 +100,28 @@ int32_t rtc_open (const uint8_t* filename){
 
 }
 
+/*rtc_close
+* DISCRIPTION: close rtc
+* INPUT: int32_t fd
+* OUTPUT: NONE
+* RETURN VALUE: 0
+* SIDE EFFECTS: rtc is closed.
+*/
+
 int32_t rtc_close(int32_t fd)
 {
     return 0;
 }
+
+/*rtc_read
+* DISCRIPTION: rtc return 0 only after interrupt occurs
+* INPUT:    void*buf
+            int32_t fd
+            int32_t nbytes
+* OUTPUT: NONE
+* RETURN VALUE: 0
+* SIDE EFFECTS: rtc receives interrupts and returns 0.
+*/
 
 int32_t rtc_read(int32_t fd,void*buf,int32_t nbytes)
 {
@@ -107,6 +133,15 @@ int32_t rtc_read(int32_t fd,void*buf,int32_t nbytes)
 	return 0;
 }
 
+/*rtc_write
+* DISCRIPTION: writes data to device or  terminal
+* INPUT:    void*buf
+            int32_t fd
+            int32_t nbytes
+* OUTPUT: NONE
+* RETURN VALUE: 0
+* SIDE EFFECTS: rtc writes data to device or terminal at certain rate(no more than 1024 herz)
+*/
 
 int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes)
 {
@@ -135,6 +170,13 @@ int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes)
     return 0;
 }
 
+/*set_freq
+* DISCRIPTION: sets frequency value
+* INPUT:    int32_t freq
+* OUTPUT: NONE
+* RETURN VALUE: NONE
+* SIDE EFFECTS: sets frequency according to the parameter freq.
+*/
 
 void set_freq(int32_t *freq)
 {
