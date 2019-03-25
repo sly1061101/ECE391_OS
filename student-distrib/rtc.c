@@ -133,7 +133,7 @@ int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes)
     outb((prev&0xF0)|freq,RTC_REG_DATA);
     sti();
 
-    return nbytes;
+    return 0;
 }
 
 
