@@ -5,6 +5,13 @@
 #include "interrupt_linkage.h"
 #include "idt.h"
 #include "x86_desc.h"
+#include "syscall.h"
+
+.data
+
+# variable to temporary save eax in system call linkage
+eax_saved:
+    .long 0
 
 .text
 
@@ -31,7 +38,7 @@
 .global ir_linkage_19
 .global ir_linkage_33
 .global ir_linkage_40
-.global ir_linkage_sys
+.global syscall_linkage
 .global ir_linkage_default
 
 # common_interrupt
@@ -144,27 +151,34 @@ ir_linkage_40:
     pushl $40
     jmp common_interrupt
 
-ir_linkage_sys:
-    # save all registers and flags
+syscall_linkage:
+    # save all registers
     pushal
-    pushfl
-    
+
     # check irq number
     cmpl $1, %eax
-    jl invalid
-    cmpl $6, %eax
-    jg invalid
+    jl syscall_linkage_error
+    cmpl $10, %eax
+    jg syscall_linkage_error
 
-    call *sys_jump_table(,%eax,4)
-    #!!!!save eax VALUE!!!!
+    # parameters
+    pushl %edx
+    pushl %ecx
+    pushl %ebx
+
+    call *syscall_jump_table(, %eax, 4)
+
+    addl $12, %esp
+
+    # save eax value
     movl %eax, eax_saved
-    popfl
+
+    # restore all registers
     popal
     movl eax_saved ,%eax
     iret
 
-invalid:
-    popfl
+syscall_linkage_error:
     popal
     movl $-1, %eax
     iret
@@ -172,10 +186,3 @@ invalid:
 ir_linkage_default:
     pushl $NUM_VEC
     jmp common_interrupt
-
-# system call jump table (only include 6 for cp3.3)
-sys_jump_table:
-    .long halt,execute,read,write,open,close
-
-eax_saved:
-    .long 0
