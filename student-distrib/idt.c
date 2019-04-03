@@ -143,4 +143,5 @@ void idt_init(){
     SET_IDT_ENTRY(idt[19],ir_linkage_19);
     SET_IDT_ENTRY(idt[33],ir_linkage_33);
     SET_IDT_ENTRY(idt[40],ir_linkage_40);
+    SET_IDT_ENTRY(idt[SYS_CALL],syscall_linkage);
 }
