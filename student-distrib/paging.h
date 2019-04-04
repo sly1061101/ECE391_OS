@@ -66,7 +66,7 @@ extern pdt_entry_t page_directory_initial[NUM_PDT_SIZE];
 extern pt_entry_t page_table_initial[NUM_PT_SIZE];
 
 // Set up registers and enable paging.
-extern void enable_paging();
+extern void enable_paging(pdt_entry_t page_directory[NUM_PDT_SIZE]);
 
 #endif
 

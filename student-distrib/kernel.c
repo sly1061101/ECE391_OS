@@ -169,7 +169,7 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    enable_paging();
+    enable_paging(page_directory_initial);
 
 #ifdef RUN_TESTS
     /* Run tests */

@@ -40,7 +40,7 @@ page_table_initial:
 
 # enable_paging
 # DISCRIPTION: function to set registers and enable paging
-# INPUT: NONE
+# INPUT:       page_directory - pointer to the page directory
 # OUTPUT: NONE
 # RETURN VALUE: NONE
 # SIDE EFFECTS: NONE
@@ -50,7 +50,7 @@ enable_paging:
 
     # Load PDT
     movl %cr3, %ecx
-    leal page_directory_initial, %edx
+    movl 8(%ebp), %edx
     andl $0x00000fff, %ecx
     andl $0xfffff000, %edx
     orl %edx, %ecx
