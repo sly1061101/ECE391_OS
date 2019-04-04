@@ -67,6 +67,11 @@ extern int32_t directory_close(int32_t fd);
 extern int32_t directory_read(int32_t fd, void *buf, int32_t nbytes);
 extern int32_t directory_write(int32_t fd, void *buf, int32_t nbytes);
 
+// Check if an executable exists and has correct magic number.
+// Return value: 0 not exist or magic number is not correct.
+//               1 exist and magic number is correct.
+extern int32_t check_executable(const uint8_t *filename);
+
 #endif
 
 #endif
