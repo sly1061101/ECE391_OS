@@ -62,7 +62,12 @@ int32_t syscall_execute (const uint8_t* command) {
     // Enable paging with the above page directory.
     enable_paging(page_directory_program[process_count]);
 
-    // TODO
+    // TODO: After this line, we must restore the page table on error.
+
+    // Load executable into memory.
+    uint32_t entry_address = load_executable(filename);
+    if(entry_address == -1)
+        return -1;
 
     process_count++;
 

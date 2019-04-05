@@ -333,3 +333,30 @@ int32_t check_executable(const uint8_t *filename) {
     
     return 1;
 }
+
+// Load the executable into memory.
+extern int32_t load_executable(const uint8_t *filename) {
+    if(!check_executable(filename))
+        return -1;
+
+    dentry_t dentry;
+
+    if(read_dentry_by_name(filename, &dentry) != 0)
+        return -1;
+
+    if(dentry.file_type != REGULAR_FILE)
+        return -1;
+
+    // Get the entry address.
+    uint32_t entry_address;
+
+    if(read_data(dentry.inode_idx, 24, &entry_address, 4) != 4)
+        return -1;
+
+    // Load entire program image into memory.
+    // TODO: Use the file size information in inode check.
+    if(read_data(dentry.inode_idx, 0, (uint8_t *)0x08048000, 4 * 1024 * 1024) == -1)
+        return -1;
+    
+    return entry_address;
+}

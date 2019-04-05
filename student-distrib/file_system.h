@@ -72,6 +72,10 @@ extern int32_t directory_write(int32_t fd, void *buf, int32_t nbytes);
 //               1 exist and magic number is correct.
 extern int32_t check_executable(const uint8_t *filename);
 
+// Load the executable into memory.
+// Return value: program entry address or -1 on error.
+extern int32_t load_executable(const uint8_t *filename);
+
 #endif
 
 #endif
