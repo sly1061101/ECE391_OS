@@ -1,6 +1,7 @@
 #include "syscall.h"
 #include "file_system.h"
 #include "keyboard.h"
+#include "paging.h"
 
 uint32_t syscall_jump_table[11] =   {   0,
                                         (uint32_t)syscall_halt, (uint32_t)syscall_execute, (uint32_t)syscall_read,
@@ -13,9 +14,15 @@ int32_t syscall_halt (uint8_t status) {
     return -1;
 }
 
+uint32_t process_count = 0;
+
+// We need to support 6 user processes at most.
+pdt_entry_t page_directory_program[6][NUM_PDT_SIZE] __attribute__((aligned(4096)));
+
 int32_t syscall_execute (const uint8_t* command) {
     if(command == NULL)
         return -1;
+
     int i;
 
     // Parse the executable name.
@@ -35,7 +42,29 @@ int32_t syscall_execute (const uint8_t* command) {
     if(!check_executable(filename))
         return -1;
     
-    
+    // Initialize the program page diretory by initial page directory.
+    for(i = 0; i < NUM_PDT_SIZE; ++i)
+        page_directory_program[process_count][i] = page_directory_initial[i];
+
+    // The 4MB page starting from 128MB would be mapped to physical memory at 8MB + (process number * 4MB)
+    page_directory_program[process_count][32].entry_page.present = 1;
+    page_directory_program[process_count][32].entry_page.read_write = 1;
+    page_directory_program[process_count][32].entry_page.user_supervisor = 1; // user privilege
+    page_directory_program[process_count][32].entry_page.write_through = 0;
+    page_directory_program[process_count][32].entry_page.cache_disabled = 0;
+    page_directory_program[process_count][32].entry_page.accessed = 0;
+    page_directory_program[process_count][32].entry_page.reserved = 0;
+    page_directory_program[process_count][32].entry_page.page_size = 1; // 4MB page
+    page_directory_program[process_count][32].entry_page.global_page = 0;
+    page_directory_program[process_count][32].entry_page.available = 0;
+    page_directory_program[process_count][32].entry_page.page_base_address = 0x00800000 + process_count * 0x00400000;
+
+    // Enable paging with the above page directory.
+    enable_paging(page_directory_program[process_count]);
+
+    // TODO
+
+    process_count++;
 
     return -1;
 }
