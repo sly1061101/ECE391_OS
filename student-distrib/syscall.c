@@ -2,6 +2,8 @@
 #include "file_system.h"
 #include "keyboard.h"
 #include "paging.h"
+#include "x86_desc.h"
+#include "syscall_helper.h"
 
 uint32_t syscall_jump_table[11] =   {   0,
                                         (uint32_t)syscall_halt, (uint32_t)syscall_execute, (uint32_t)syscall_read,
@@ -69,9 +71,20 @@ int32_t syscall_execute (const uint8_t* command) {
     if(entry_address == -1)
         return -1;
 
+    // TODO: PCB stuffs
+
+    // Modify TSS for context switch.
+    tss.ss0 = KERNEL_DS;
+    tss.esp0 = 0x800000 - 0x2000 - 0x2000 * process_count;
+
     process_count++;
 
-    return -1;
+    // PUSH IRET context and switch to user mode.
+    // TODO: Is there any way to replace this function with inline assembly?
+    //        Otherwise we (might) have to clean up the stack set up by calling this function,
+    switch_to_user(USER_DS, 0x83fffff, USER_CS, entry_address);
+    
+    return 0;
 }
 
 int32_t syscall_read (int32_t fd, void* buf, int32_t nbytes) {
