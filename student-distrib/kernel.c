@@ -171,7 +171,7 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    enable_paging(page_directory_initial);
+    paging_init();
 
     process_init();
 

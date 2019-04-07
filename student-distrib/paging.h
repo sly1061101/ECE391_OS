@@ -65,8 +65,14 @@ typedef struct __attribute__((packed)) pt_entry {
 extern pdt_entry_t page_directory_initial[NUM_PDT_SIZE];
 extern pt_entry_t page_table_initial[NUM_PT_SIZE];
 
-// Set up registers and enable paging.
-extern void enable_paging(pdt_entry_t page_directory[NUM_PDT_SIZE]);
+// Load a page directory into CR3 register.
+extern void load_page_directory(pdt_entry_t page_directory_initial[NUM_PDT_SIZE]);
+
+// Set up registers and turn on paging.
+extern void enable_paging();
+
+// Initialize the paging stuffs.
+extern void paging_init();
 
 #endif
 

@@ -34,7 +34,7 @@ int32_t syscall_halt (uint8_t status) {
     tss.esp0 = kernel_space_base_address + kernel_stack_size - 1;
 
     // Restore page directory for parent process.
-    enable_paging(page_directory_program[pcb->parent_pid]);
+    load_page_directory(page_directory_program[pcb->parent_pid]);
 
     // Release the pid of current process.
     (void) release_pid(pcb->pid);
@@ -109,8 +109,8 @@ int32_t syscall_execute (const uint8_t* command) {
     page_directory_program[pid][32].entry_page.available = 0;
     page_directory_program[pid][32].entry_page.page_base_address = user_space_base_address >> 22;
 
-    // Enable paging with the above page directory.
-    enable_paging(page_directory_program[pid]);
+    // Load the above page directory.
+    load_page_directory(page_directory_program[pid]);
 
     // TODO: After this line, we must restore the page directory on error.
 
