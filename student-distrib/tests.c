@@ -207,21 +207,21 @@ int pdt_and_pt_test(){
 	// Test page directory table.
 	for(i = 0; i < NUM_PDT_SIZE; ++i) {
 		if(i == 0) {
-			if(page_directory_table[i].entry_PT.present != 1
-			|| page_directory_table[i].entry_PT.page_size != 0) {
+			if(page_directory_initial[i].entry_PT.present != 1
+			|| page_directory_initial[i].entry_PT.page_size != 0) {
 				assertion_failure();
 				result = FAIL;
 			}
 		}
 		else if(i == 1) {
-			if(page_directory_table[i].entry_PT.present != 1
-			|| page_directory_table[i].entry_PT.page_size != 1) {
+			if(page_directory_initial[i].entry_PT.present != 1
+			|| page_directory_initial[i].entry_PT.page_size != 1) {
 				assertion_failure();
 				result = FAIL;
 			}
 		}
 		else {
-			if(page_directory_table[i].entry_PT.present != 0) {
+			if(page_directory_initial[i].entry_PT.present != 0) {
 				assertion_failure();
 				result = FAIL;
 			}
@@ -231,13 +231,13 @@ int pdt_and_pt_test(){
 	// Test page table.
 	for(i = 0; i < NUM_PT_SIZE; ++i) {
 		if(i == VAL_184) {
-			if(page_table[i].present != 1) {
+			if(page_table_initial[i].present != 1) {
 				assertion_failure();
 				result = FAIL;
 			}
 		}
 		else {
-			if(page_table[i].present != 0) {
+			if(page_table_initial[i].present != 0) {
 				assertion_failure();
 				result = FAIL;
 			}
@@ -573,7 +573,7 @@ void launch_tests(){
 	TEST_OUTPUT("test_directory_operations", test_directory_operations());
 	TEST_OUTPUT("test_file_by_name", test_file_by_name("frame1.txt"));
 	TEST_OUTPUT("test_file_by_index_in_boot_block", test_file_by_index_in_boot_block(11));
-	TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
+	// TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
 	TEST_OUTPUT("test_terminal_write_size_larger_than_actual",test_terminal_write_size_larger_than_actual());
-	TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
+	// TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
 }

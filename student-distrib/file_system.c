@@ -312,3 +312,51 @@ int file_system_init(uint32_t base_address) {
 
     return 0;
 }
+
+// Check if an executable exists and has correct magic number.
+int32_t check_executable(const uint8_t *filename) {
+    dentry_t dentry;
+
+    if(read_dentry_by_name(filename, &dentry) != 0)
+        return 0;
+
+    if(dentry.file_type != REGULAR_FILE)
+        return 0;
+
+    uint8_t magic_number[4];
+
+    if(read_data(dentry.inode_idx, 0, magic_number, 4) != 4)
+        return 0;
+
+    if(magic_number[0] != 0x7f || magic_number[1] != 0x45 || magic_number[2] != 0x4c || magic_number[3] != 0x46)
+        return 0;
+    
+    return 1;
+}
+
+// Load the executable into memory.
+extern int32_t load_executable(const uint8_t *filename) {
+    if(!check_executable(filename))
+        return -1;
+
+    dentry_t dentry;
+
+    if(read_dentry_by_name(filename, &dentry) != 0)
+        return -1;
+
+    if(dentry.file_type != REGULAR_FILE)
+        return -1;
+
+    // Get the entry address.
+    uint32_t entry_address;
+
+    if(read_data(dentry.inode_idx, 24, &entry_address, 4) != 4)
+        return -1;
+
+    // Load entire program image into memory.
+    // TODO: Use the file size information in inode check.
+    if(read_data(dentry.inode_idx, 0, (uint8_t *)0x08048000, 4 * 1024 * 1024) == -1)
+        return -1;
+    
+    return entry_address;
+}
