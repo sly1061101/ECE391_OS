@@ -573,7 +573,7 @@ void launch_tests(){
 	TEST_OUTPUT("test_directory_operations", test_directory_operations());
 	TEST_OUTPUT("test_file_by_name", test_file_by_name("frame1.txt"));
 	TEST_OUTPUT("test_file_by_index_in_boot_block", test_file_by_index_in_boot_block(11));
-	TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
+	// TEST_OUTPUT("rtc_freq_test",rtc_freq_test());
 	TEST_OUTPUT("test_terminal_write_size_larger_than_actual",test_terminal_write_size_larger_than_actual());
-	TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
+	// TEST_OUTPUT("test_keyboard_read_and_terminal_write", test_keyboard_read_and_terminal_write());
 }
