@@ -13,6 +13,7 @@
 #include "keyboard.h"
 #include "rtc.h"
 #include "file_system.h"
+#include "process.h"
 
 #define RUN_TESTS
 
@@ -170,6 +171,8 @@ void entry(unsigned long magic, unsigned long addr) {
     sti();
 
     enable_paging(page_directory_initial);
+
+    process_init();
 
 #ifdef RUN_TESTS
     /* Run tests */

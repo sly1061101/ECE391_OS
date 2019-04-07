@@ -4,6 +4,7 @@
 #include "paging.h"
 #include "x86_desc.h"
 #include "syscall_helper.h"
+#include "process.h"
 
 uint32_t syscall_jump_table[11] =   {   0,
                                         (uint32_t)syscall_halt, (uint32_t)syscall_execute, (uint32_t)syscall_read,
@@ -12,32 +13,8 @@ uint32_t syscall_jump_table[11] =   {   0,
                                         (uint32_t)syscall_sigreturn
                                     };
 
-typedef struct pcb {
-    uint32_t pid;
-    uint32_t parent_pid;
-    struct pcb *parent_pcb;
-    uint32_t parent_ebp;
-    uint32_t parent_esp;
-} pcb_t;
-
-// Current number of processes.
-uint32_t process_count = 0;
-
 // We need to support 6 user processes at most.
 pdt_entry_t page_directory_program[6][NUM_PDT_SIZE] __attribute__((aligned(4096)));
-
-pcb_t* get_current_pcb() {
-    uint32_t esp;
-
-    asm volatile("movl %%esp, %0" \
-                :"=r"(esp)   \
-                :                \
-                :"memory");
-
-    pcb_t *pcb = esp & 0xffffe000;
-
-    return pcb;
-}
 
 int32_t syscall_halt (uint8_t status) {
     process_count--;
