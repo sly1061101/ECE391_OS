@@ -14,6 +14,7 @@
 #include "rtc.h"
 #include "file_system.h"
 #include "process.h"
+#include "syscall.h"
 
 #define RUN_TESTS
 
@@ -179,7 +180,7 @@ void entry(unsigned long magic, unsigned long addr) {
     launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
-
+    syscall_execute("shell");
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
 }
