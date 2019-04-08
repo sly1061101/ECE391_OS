@@ -13,9 +13,6 @@ uint32_t syscall_jump_table[11] =   {   0,
                                         (uint32_t)syscall_sigreturn
                                     };
 
-// We need to support 6 user processes at most.
-pdt_entry_t page_directory_program[MAX_PROCESS_NUMBER][NUM_PDT_SIZE] __attribute__((aligned(4096)));
-
 int32_t syscall_halt (uint8_t status) {
     pcb_t *pcb = get_current_pcb();
 

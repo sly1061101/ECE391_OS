@@ -1,11 +1,11 @@
 #ifndef _PROCESS_H_
 #define _PROCESS_H_
 
+#define MAX_PROCESS_NUMBER 6
+
 #ifndef ASM
 
 #include "types.h"
-
-#define MAX_PROCESS_NUMBER 6
 
 typedef struct pcb {
     uint32_t pid;

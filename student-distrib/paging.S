@@ -12,6 +12,7 @@
 
 .globl page_directory_initial
 .globl page_table_initial
+.global page_directory_program
 .globl enable_paging
 .global load_page_directory
 .global paging_init
@@ -39,6 +40,12 @@ page_table_initial:
     .long NOT_PRESENT_PAGE
     .endr
 
+# Page directory for user programs, will be set up in execute syscall.
+    .align 4096
+page_directory_program:
+    .rept MAX_PROCESS_NUMBER * NUM_PDT_SIZE
+    .long NOT_PRESENT_PAGE
+    .endr
 
 # enable_paging
 # DISCRIPTION: function to set registers and enable paging

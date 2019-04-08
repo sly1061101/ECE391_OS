@@ -2,6 +2,7 @@
 #define _PAGING_H
 
 #include "types.h"
+#include "process.h"
 
 #define NUM_PDT_SIZE 1024
 #define NUM_PT_SIZE 1024
@@ -64,6 +65,9 @@ typedef struct __attribute__((packed)) pt_entry {
 // PDT for entire memory space and PT for first 4MB.
 extern pdt_entry_t page_directory_initial[NUM_PDT_SIZE];
 extern pt_entry_t page_table_initial[NUM_PT_SIZE];
+
+// Page directory for user programs, will be set up in execute syscall.
+extern pdt_entry_t page_directory_program[MAX_PROCESS_NUMBER][NUM_PDT_SIZE];
 
 // Load a page directory into CR3 register.
 extern void load_page_directory(pdt_entry_t page_directory_initial[NUM_PDT_SIZE]);
