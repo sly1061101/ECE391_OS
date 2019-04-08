@@ -20,8 +20,9 @@ int32_t syscall_halt (uint8_t status) {
     pcb_t *pcb = get_current_pcb();
 
     if(pcb->parent_pcb == NULL) {
-        printf("The first shell should not be halted.\n");
-        while(1);
+        // If the first shell is halted, restart it automatically.
+        (void) release_pid(pcb->pid);
+        (void) syscall_execute("shell");
     }
 
     // The kernel space of a process in physical memory starts at 8MB - 8KB - 8KB * pid.
