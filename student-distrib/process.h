@@ -27,7 +27,6 @@ typedef struct fops {
 typedef struct file_desc {
     fops_t fops;
     int32_t inode;
-    int32_t file_position;
     int32_t flag;
 } file_desc_t;
 
@@ -44,11 +43,14 @@ typedef struct pcb {
 
 // Current number of processes.
 extern uint32_t process_count;
+
 // Flags showing whether a process exists.
 extern int8_t process_exist[MAX_PROCESS_NUMBER];
 
+// Initialization of a process
 extern void process_init();
 
+// helper function to get current pcb using registers
 extern pcb_t* get_current_pcb();
 
 // Request an available pid. Return pid on success, or -1 if has reached max process count.

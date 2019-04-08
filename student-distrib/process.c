@@ -5,6 +5,13 @@ uint32_t process_count;
 // Flags showing whether a process exists.
 int8_t process_exist[MAX_PROCESS_NUMBER];
 
+/*
+ *   process_init
+ *   DESCRIPTION: Initialize a process
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   SIDE EFFECTS: none
+ */
 void process_init() {
     int i;
     for(i = 0; i < MAX_PROCESS_NUMBER; ++i)
@@ -12,6 +19,13 @@ void process_init() {
     process_count = 0;
 }
 
+/*
+ *   get_current_pcb
+ *   DESCRIPTION: get current pcb using bitmap of registers
+ *   INPUTS: none
+ *   OUTPUTS: pcb pointer
+ *   SIDE EFFECTS: none
+ */
 pcb_t* get_current_pcb() {
     uint32_t esp;
 
@@ -20,11 +34,18 @@ pcb_t* get_current_pcb() {
                 :                \
                 :"memory");
 
-    pcb_t *pcb = esp & 0xffffe000;
+    pcb_t* pcb = (pcb_t*) (esp & 0xffffe000);
 
     return pcb;
 }
 
+/*
+ *   request_pid
+ *   DESCRIPTION: using process number to get current pid
+ *   INPUTS: none
+ *   OUTPUTS: pid number
+ *   SIDE EFFECTS: none
+ */
 int32_t request_pid() {
     if(process_count >= MAX_PROCESS_NUMBER)
         return -1;
@@ -41,7 +62,13 @@ int32_t request_pid() {
     // Should never reach here.
     return -1;
 }
-
+/*
+ *   release_pid
+ *   DESCRIPTION: release the given pid
+ *   INPUTS: pid number
+ *   OUTPUTS: 0 on success, -1 on failure
+ *   SIDE EFFECTS: none
+ */
 int32_t release_pid(uint32_t pid) {
     if(pid >= MAX_PROCESS_NUMBER)
         return -1;

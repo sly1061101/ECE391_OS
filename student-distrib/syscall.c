@@ -7,6 +7,7 @@
 #include "process.h"
 #include "rtc.h"
 
+// jump table for various system calls
 uint32_t syscall_jump_table[11] =   {   0,
                                         (uint32_t)syscall_halt, (uint32_t)syscall_execute, (uint32_t)syscall_read,
                                         (uint32_t)syscall_write, (uint32_t)syscall_open, (uint32_t)syscall_close,
@@ -15,6 +16,7 @@ uint32_t syscall_jump_table[11] =   {   0,
                                     };
 
 
+// functions for stdin/out/rtc/file/dic for distinct tables 
 fops_t stdin = {(read_t)terminal_read, NULL, NULL, NULL};
 fops_t stdout = {NULL, (write_t)terminal_write, NULL, NULL};
 fops_t rtc_ops = {(read_t)rtc_read, (write_t)rtc_write, (open_t)rtc_open, (close_t)rtc_close};
@@ -26,6 +28,16 @@ fops_t dir_ops = {(read_t)directory_read, (write_t)directory_write, (open_t)dire
 //  create another function is just to support return status greater
 //  than 255, since the parameter of syscall_halt() is uint8 type and
 //  we want status 256 when halted by exception.
+
+/*
+ *   halt_current_process
+ *   DESCRIPTION: halt a process when given user program status
+ *   INPUTS: status  -- return value of user program
+ *   OUTPUTS: none 
+ *   RETURN VALUE:  none on success
+ *                 -1 on failure
+ *   SIDE EFFECTS: none
+ */
 int32_t halt_current_process(uint32_t status) {
     int i;
 
@@ -41,7 +53,7 @@ int32_t halt_current_process(uint32_t status) {
     if(pcb->parent_pcb == NULL) {
         // If the first shell is halted, restart it automatically.
         (void) release_pid(pcb->pid);
-        (void) syscall_execute("shell");
+        (void) syscall_execute((uint8_t*)"shell");
     }
 
     // The kernel space of a process in physical memory starts at 8MB - 8KB - 8KB * pid.
@@ -73,9 +85,30 @@ int32_t halt_current_process(uint32_t status) {
     return -1;
 }
 
+/*
+ *   syscall_halt
+ *   DESCRIPTION: halt a process
+ *   INPUTS: status  -- return value of user program
+ *   OUTPUTS: none
+ *   RETURN VALUE: status
+ *                 -1 on failure
+ *   SIDE EFFECTS: none
+ */
+
 int32_t syscall_halt (uint8_t status) {
     return halt_current_process(status);
 }
+
+/*
+ *   syscall_execute
+ *   DESCRIPTION: execute a file
+ *   INPUTS: status  -- return status of current process 
+ *   OUTPUTS: none
+ *   RETURN VALUE: 
+ *                 -1 on failure
+ *                 -2 on number of process exceeding max                   
+ *   SIDE EFFECTS: none
+ */
 
 int32_t syscall_execute (const uint8_t* command) {
     if(command == NULL)
@@ -86,7 +119,7 @@ int32_t syscall_execute (const uint8_t* command) {
     // Parse the executable name.
     // TODO: Parse remaining arguments.
     uint8_t filename[FILE_NAME_MAX_LENGTH + 1];
-    for(i = 0; i < strlen(command) + 1; ++i) {
+    for(i = 0; i < strlen((int8_t*)command) + 1; ++i) {
         if(command[i] == ' ' || command[i] == '\0') {
             memcpy(filename, command, i);
             filename[i] = 0;
@@ -110,7 +143,8 @@ int32_t syscall_execute (const uint8_t* command) {
 
     // The user space of a process in physical memory starts at 8MB + (pid * 4MB).
     uint32_t user_space_base_address = 0x00800000 + pid * 0x00400000;
-    uint32_t user_stack_size = 0x00400000;
+    // unused so far
+    //uint32_t user_stack_size = 0x00400000;
 
     // Video memory page and kernel memory page are the same with the initial setting.
     for(i = 0; i < NUM_PDT_SIZE; ++i)
@@ -148,8 +182,12 @@ int32_t syscall_execute (const uint8_t* command) {
     pcb_t *pcb = (pcb_t *)kernel_space_base_address;
     pcb->pid = pid;
 
+    // Initialize first two entry 
     pcb->file_array[0].fops = stdin;
     pcb->file_array[1].fops = stdout;
+
+    pcb->file_array[0].flag = 1;
+    pcb->file_array[1].flag = 1;
 
     for(i=2;i<MAX_FD_SIZE;i++){
         
@@ -213,16 +251,18 @@ int32_t syscall_read (int32_t fd, void* buf, int32_t nbytes) {
 
     sti();
 
+    // error handling
     if(fd >= MAX_FD_SIZE || fd < 0 || buf == NULL)
     {
         return -1;
     }
     // get current pcb
-    pcb_t * curr_pcb = get_current_pcb(); // need change depends on dalao's impementation
+    pcb_t * curr_pcb = get_current_pcb(); 
 
     // call read function
     int num_byte_read = curr_pcb->file_array[fd].fops.read_func(fd , buf , nbytes);
 
+    // error condition when return byte is negative
     if(num_byte_read < 0)
     {
         return -1;
@@ -251,12 +291,13 @@ int32_t syscall_write (int32_t fd, const void* buf, int32_t nbytes) {
     }
 
     // get current pcd
-    pcb_t * curr_pcb = get_current_pcb(); // need change depends on dalao's impementation
+    pcb_t * curr_pcb = get_current_pcb();
 
 
     // call write function   
     int num_byte_write = curr_pcb->file_array[fd].fops.write_func(fd , buf , nbytes);
 
+    // error condition when return byte is negative
     if(num_byte_write < 0)
     {
         return -1;
@@ -280,6 +321,7 @@ int32_t syscall_open(const uint8_t* filename) {
     int32_t i = 0;
     dentry_t fileopen;
     
+    // error handling
     if (filename == NULL || read_dentry_by_name(filename, &fileopen) == -1){
         return -1;
     }
@@ -299,9 +341,10 @@ int32_t syscall_open(const uint8_t* filename) {
     // when pcd arry is full
     if(i == MAX_FD_SIZE) return -1;
 
-    
+    // set current pcb in use
     curr_pcb->file_array[i].flag = 1;
 
+    // determine file type
     switch(fileopen.file_type){
 
         case RTC_TYPE:
@@ -322,14 +365,11 @@ int32_t syscall_open(const uint8_t* filename) {
         curr_pcb -> file_array[i].fops.open_func(filename);
         return i;
 
-
         default:
         return -1;
 
     }
 }
-
-
 
 /*
  *   syscall_close
@@ -346,9 +386,10 @@ int32_t syscall_close(int32_t fd) {
         return -1;
     }
 
-    // wait to be chagned
+    // get current pcb
     pcb_t *curr_pcb = get_current_pcb();
 
+    // if currnet in not in use, can't close
     if (curr_pcb -> file_array[fd].flag == 0) {
         return -1;
     }
@@ -361,7 +402,7 @@ int32_t syscall_close(int32_t fd) {
 }
 
 
-
+// TODO
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes) {
     return -1;
 }

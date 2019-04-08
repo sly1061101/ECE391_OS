@@ -1,7 +1,7 @@
 #include "idt.h"
 #include "lib.h"
 #include "interrupt_linkage.h"
-
+#include "syscall.h"
 
 #define SYS_CALL 0x80
 
