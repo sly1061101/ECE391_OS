@@ -9,6 +9,7 @@
 
 #define MAX_FD_SIZE 8
 #define MIN_FD_SIZE 2
+#define HIGH_BIT_MASK 0xffffe000
 
 typedef int32_t (*read_t)(int32_t fd, void* buf, int32_t nbytes);
 typedef int32_t (*write_t)(int32_t fd, const void* buf, int32_t nbytes);

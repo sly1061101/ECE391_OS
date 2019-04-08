@@ -1,5 +1,6 @@
 #include "process.h"
 
+
 // Current number of processes.
 uint32_t process_count;
 // Flags showing whether a process exists.
@@ -34,7 +35,7 @@ pcb_t* get_current_pcb() {
                 :                \
                 :"memory");
 
-    pcb_t* pcb = (pcb_t*) (esp & 0xffffe000);
+    pcb_t* pcb = (pcb_t*) (esp & HIGH_BIT_MASK);
 
     return pcb;
 }
