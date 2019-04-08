@@ -12,10 +12,9 @@ void (*interrupt_handler[NUM_VEC + 1])();
 #define exception(name,message) \
 void name() {                   \
     cli();                      \
-    clear();                    \
     printf("%s\n", message);    \
-    while(1);                   \
     sti();                      \
+    halt_current_process(256);  \
 }
 
 exception(exc_de,"Divide Error Exception");
@@ -40,10 +39,9 @@ void exc_pf() {
                  :"=r"(address)   \
                  :                \
                  :"memory");
-    clear();
     printf("Page-Fault Exception. Address accessed: 0x%#x\n", address);
-    while(1);
     sti();
+    halt_current_process(256);
 }
 
 exception(exc_15,"INT 15 Handler!"); // Not exist in Intel manual.

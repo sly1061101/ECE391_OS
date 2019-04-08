@@ -13,15 +13,17 @@ uint32_t syscall_jump_table[11] =   {   0,
                                         (uint32_t)syscall_sigreturn
                                     };
 
-// We need to support 6 user processes at most.
-pdt_entry_t page_directory_program[MAX_PROCESS_NUMBER][NUM_PDT_SIZE] __attribute__((aligned(4096)));
-
-int32_t syscall_halt (uint8_t status) {
+// This function actually implements syscall_halt(). The reason to 
+//  create another function is just to support return status greater
+//  than 255, since the parameter of syscall_halt() is uint8 type and
+//  we want status 256 when halted by exception.
+int32_t halt_current_process(uint32_t status) {
     pcb_t *pcb = get_current_pcb();
 
     if(pcb->parent_pcb == NULL) {
-        printf("The first shell should not be halted.\n");
-        while(1);
+        // If the first shell is halted, restart it automatically.
+        (void) release_pid(pcb->pid);
+        (void) syscall_execute("shell");
     }
 
     // The kernel space of a process in physical memory starts at 8MB - 8KB - 8KB * pid.
@@ -39,24 +41,22 @@ int32_t syscall_halt (uint8_t status) {
     // Release the pid of current process.
     (void) release_pid(pcb->pid);
 
-    // Restore esp and ebp for parent process.
+    // Restore esp and ebp for parent process, store status 
+    //  to eax as execute() return value, then jump back to execute return.
     asm volatile("  movl %0, %%esp    \n\
-                    movl %1, %%ebp"
-                :                                               \
-                :"r"(pcb->parent_esp),"r"(pcb->parent_ebp)      \
+                    movl %1, %%ebp    \n\
+                    movl %2, %%eax    \n\
+                    jmp syscall_execute_return "                             \
+                :                                                            \
+                :"r"(pcb->parent_esp),"r"(pcb->parent_ebp), "r"(status)      \
                 :"memory");
-
-    // Store the status to eax for syscall_execute() to use return value.
-    asm volatile("movl %0, %%eax"        \
-                :                        \
-                :"r"((uint32_t)status)   \
-                :"memory");
-
-    // Go back to execute return at parent process.
-    asm volatile ("jmp syscall_execute_return;");
-
+    
     // Should never reach here.
     return -1;
+}
+
+int32_t syscall_halt (uint8_t status) {
+    return halt_current_process(status);
 }
 
 int32_t syscall_execute (const uint8_t* command) {
@@ -85,8 +85,10 @@ int32_t syscall_execute (const uint8_t* command) {
     // Request an available pid.
     uint32_t pid = request_pid();
     // If no more pid is available we cannot proceed.
-    if(pid == -1)
-        return -1;
+    if(pid == -1) {
+        printf("No more process is allowed!\n");
+        return -2;
+    }
 
     // The user space of a process in physical memory starts at 8MB + (pid * 4MB).
     uint32_t user_space_base_address = 0x00800000 + pid * 0x00400000;
