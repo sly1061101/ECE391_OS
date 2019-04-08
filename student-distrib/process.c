@@ -7,7 +7,7 @@ int8_t process_exist[MAX_PROCESS_NUMBER];
 
 /*
  *   process_init
- *   DESCRIPTION: Initialize a process
+ *   DESCRIPTION: Initialize process-related data structre
  *   INPUTS: none
  *   OUTPUTS: none
  *   SIDE EFFECTS: none
@@ -21,7 +21,7 @@ void process_init() {
 
 /*
  *   get_current_pcb
- *   DESCRIPTION: get current pcb using bitmap of registers
+ *   DESCRIPTION: get current pcb based on which kernel stack we are on 
  *   INPUTS: none
  *   OUTPUTS: pcb pointer
  *   SIDE EFFECTS: none
@@ -41,7 +41,7 @@ pcb_t* get_current_pcb() {
 
 /*
  *   request_pid
- *   DESCRIPTION: using process number to get current pid
+ *   DESCRIPTION: return the next unused pid
  *   INPUTS: none
  *   OUTPUTS: pid number
  *   SIDE EFFECTS: none

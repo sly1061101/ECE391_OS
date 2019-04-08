@@ -31,7 +31,7 @@ fops_t dir_ops = {(read_t)directory_read, (write_t)directory_write, (open_t)dire
 
 /*
  *   halt_current_process
- *   DESCRIPTION: halt a process when given user program status
+ *   DESCRIPTION: halt the current process (which is calling this function)
  *   INPUTS: status  -- return value of user program
  *   OUTPUTS: none 
  *   RETURN VALUE:  none on success
@@ -88,7 +88,7 @@ int32_t halt_current_process(uint32_t status) {
 /*
  *   syscall_halt
  *   DESCRIPTION: halt a process
- *   INPUTS: status  -- return value of user program
+ *   INPUTS: status  -- return status of program executed
  *   OUTPUTS: none
  *   RETURN VALUE: status
  *                 -1 on failure
@@ -102,10 +102,9 @@ int32_t syscall_halt (uint8_t status) {
 /*
  *   syscall_execute
  *   DESCRIPTION: execute a file
- *   INPUTS: status  -- return status of current process 
+ *   INPUTS: command -- user command name
  *   OUTPUTS: none
- *   RETURN VALUE: 
- *                 -1 on failure
+ *   RETURN VALUE:  -1 on failure
  *                 -2 on number of process exceeding max                   
  *   SIDE EFFECTS: none
  */

@@ -8,6 +8,7 @@
 
 .global switch_to_user
 
+# push iret contents to stack and switch to user process
 switch_to_user:
     cli
 
