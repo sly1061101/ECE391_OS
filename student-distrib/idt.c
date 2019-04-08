@@ -4,6 +4,7 @@
 #include "syscall.h"
 
 #define SYS_CALL 0x80
+#define HALT_STATUS_ON_EXCEPTION 256
 
 // Jump table for all interrupt hanlders. Last one is default handler.
 void (*interrupt_handler[NUM_VEC + 1])();
@@ -14,7 +15,7 @@ void name() {                   \
     cli();                      \
     printf("%s\n", message);    \
     sti();                      \
-    halt_current_process(256);  \
+    halt_current_process(HALT_STATUS_ON_EXCEPTION);  \
 }
 
 exception(exc_de,"Divide Error Exception");
@@ -41,7 +42,7 @@ void exc_pf() {
                  :"memory");
     printf("Page-Fault Exception. Address accessed: 0x%#x\n", address);
     sti();
-    halt_current_process(256);
+    halt_current_process(HALT_STATUS_ON_EXCEPTION);
 }
 
 exception(exc_15,"INT 15 Handler!"); // Not exist in Intel manual.

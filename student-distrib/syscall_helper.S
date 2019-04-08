@@ -34,6 +34,7 @@ switch_to_user:
     # process and push eflags
     pushfl
     popl %eax
+    # set IF bit
     orl $0x200, %eax
     pushl %eax
 

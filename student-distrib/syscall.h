@@ -11,11 +11,15 @@
 #define MIN_FD_SIZE     2
 
 #define KERNEL_STACK_SIZE 0x2000
-#define KERNEL_STACK_BOT 0x800000
+#define USER_STACK_SIZE 0x00400000
+#define KERNEL_MEMORY_BOT 0x800000
+#define USER_STACK_BOTTOM_VIRTUAL 0x83fffff
+
+#define NUM_SYSCALL 11
 
 // Use regular integer array to store function addresses directly.
 // Cannot use function pointer array because parameter lists are different.
-extern uint32_t syscall_jump_table[11];
+extern uint32_t syscall_jump_table[NUM_SYSCALL];
 
 // system halt and execute
 extern int32_t syscall_halt (uint8_t status);

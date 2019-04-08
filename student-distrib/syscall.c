@@ -7,8 +7,12 @@
 #include "process.h"
 #include "rtc.h"
 
+#define VAL_2 2
+#define VAL_22 22
+#define USER_STACK_VIRTUAL_PAGE_INDEX 32
+
 // jump table for various system calls
-uint32_t syscall_jump_table[11] =   {   0,
+uint32_t syscall_jump_table[NUM_SYSCALL] =   {   0,
                                         (uint32_t)syscall_halt, (uint32_t)syscall_execute, (uint32_t)syscall_read,
                                         (uint32_t)syscall_write, (uint32_t)syscall_open, (uint32_t)syscall_close,
                                         (uint32_t)syscall_getargs, (uint32_t)syscall_vidmap, (uint32_t)syscall_set_handler,
@@ -43,7 +47,7 @@ int32_t halt_current_process(uint32_t status) {
 
     pcb_t *pcb = get_current_pcb();
 
-    for(i=2;i<MAX_FD_SIZE;i++){
+    for(i=VAL_2;i<MAX_FD_SIZE;i++){
         if(pcb -> file_array[i].flag != 0){
             pcb -> file_array[i].fops.close_func(i);
             pcb -> file_array[i].flag =0;
@@ -57,7 +61,7 @@ int32_t halt_current_process(uint32_t status) {
     }
 
     // The kernel space of a process in physical memory starts at 8MB - 8KB - 8KB * pid.
-    uint32_t kernel_space_base_address = KERNEL_STACK_BOT - KERNEL_STACK_SIZE - KERNEL_STACK_SIZE * pcb->parent_pcb->pid;
+    uint32_t kernel_space_base_address = KERNEL_MEMORY_BOT - KERNEL_STACK_SIZE - KERNEL_STACK_SIZE * pcb->parent_pcb->pid;
 
 
     // Restore TSS for parent process.
@@ -141,7 +145,7 @@ int32_t syscall_execute (const uint8_t* command) {
     }
 
     // The user space of a process in physical memory starts at 8MB + (pid * 4MB).
-    uint32_t user_space_base_address = 0x00800000 + pid * 0x00400000;
+    uint32_t user_space_base_address = KERNEL_MEMORY_BOT + pid * USER_STACK_SIZE;
     // unused so far
     //uint32_t user_stack_size = 0x00400000;
 
@@ -151,17 +155,17 @@ int32_t syscall_execute (const uint8_t* command) {
         page_directory_program[pid][i] = page_directory_initial[i];
 
     // The 4MB page starting from 128MB should be mapped to correspoding physical page of a process's user space.
-    page_directory_program[pid][32].entry_page.present = 1;
-    page_directory_program[pid][32].entry_page.read_write = 1;
-    page_directory_program[pid][32].entry_page.user_supervisor = 1; // user privilege
-    page_directory_program[pid][32].entry_page.write_through = 0;
-    page_directory_program[pid][32].entry_page.cache_disabled = 0;
-    page_directory_program[pid][32].entry_page.accessed = 0;
-    page_directory_program[pid][32].entry_page.reserved = 0;
-    page_directory_program[pid][32].entry_page.page_size = 1; // 4MB page
-    page_directory_program[pid][32].entry_page.global_page = 0;
-    page_directory_program[pid][32].entry_page.available = 0;
-    page_directory_program[pid][32].entry_page.page_base_address = user_space_base_address >> 22;
+    page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.present = 1;
+    page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.read_write = 1;
+    page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.user_supervisor = 1; // user privilege
+    page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.write_through = 0;
+    page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.cache_disabled = 0;
+    page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.accessed = 0;
+    page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.reserved = 0;
+    page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.page_size = 1; // 4MB page
+    page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.global_page = 0;
+    page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.available = 0;
+    page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.page_base_address = user_space_base_address >> VAL_22;
 
     // Load the above page directory.
     load_page_directory(page_directory_program[pid]);
@@ -174,7 +178,7 @@ int32_t syscall_execute (const uint8_t* command) {
     }
 
     // The kernel space of a process in physical memory starts at 8MB - 8KB - 8KB * pid.
-    uint32_t kernel_space_base_address = KERNEL_STACK_BOT - KERNEL_STACK_SIZE - KERNEL_STACK_SIZE * pid;
+    uint32_t kernel_space_base_address = KERNEL_MEMORY_BOT - KERNEL_STACK_SIZE - KERNEL_STACK_SIZE * pid;
 
     // TODO: PCB stuffs need to be refined.
     
@@ -226,8 +230,7 @@ int32_t syscall_execute (const uint8_t* command) {
     tss.esp0 = kernel_space_base_address + KERNEL_STACK_SIZE - 1;
 
     // PUSH IRET context and switch to user mode.
-    //  0x83fffff is the highest virtual address of user stack.
-    switch_to_user(USER_DS, 0x83fffff, USER_CS, entry_address);
+    switch_to_user(USER_DS, USER_STACK_BOTTOM_VIRTUAL, USER_CS, entry_address);
 
     asm volatile ("syscall_execute_return: leave; ret;");
 

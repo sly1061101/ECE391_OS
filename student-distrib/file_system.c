@@ -3,6 +3,15 @@
 #include "lib.h"
 
 #define DENTRY_START_OFFSET 64
+#define PROGRAM_IMAGE_START_ADDRESS 0x08048000
+#define USER_STACK_SIZE 0X400000
+
+#define NUM_MAGIC_NUMBER 4
+#define MAGIC_NUM_0 0x7f
+#define MAGIC_NUM_1 0x45
+#define MAGIC_NUM_2 0x4c
+#define MAGIC_NUM_3 0x46
+#define MAGIC_NUMBER_ADDRESS_OFFSET 24
 
 // Starting address for file system in kernel memory.
 static uint32_t file_system_base_address = NULL;
@@ -324,13 +333,15 @@ int32_t check_executable(const uint8_t *filename) {
     if(dentry.file_type != REGULAR_FILE)
         return 0;
 
-    uint8_t magic_number[4];
+    uint8_t magic_number[NUM_MAGIC_NUMBER];
 
-    if(read_data(dentry.inode_idx, 0, magic_number, 4) != 4)
+    if(read_data(dentry.inode_idx, 0, magic_number, NUM_MAGIC_NUMBER) != NUM_MAGIC_NUMBER)
         return 0;
 
-    if(magic_number[0] != 0x7f || magic_number[1] != 0x45 || magic_number[2] != 0x4c || magic_number[3] != 0x46)
+    if(magic_number[0] != MAGIC_NUM_0 || magic_number[1] != MAGIC_NUM_1 
+        || magic_number[2] != MAGIC_NUM_2 || magic_number[3] != MAGIC_NUM_3) {
         return 0;
+    }
     
     return 1;
 }
@@ -351,12 +362,12 @@ extern int32_t load_executable(const uint8_t *filename) {
     // Get the entry address.
     uint32_t entry_address;
 
-    if(read_data(dentry.inode_idx, 24, (uint8_t *)&entry_address, 4) != 4)
+    if(read_data(dentry.inode_idx, MAGIC_NUMBER_ADDRESS_OFFSET, (uint8_t *)&entry_address, NUM_MAGIC_NUMBER) != NUM_MAGIC_NUMBER)
         return -1;
 
     // Load entire program image into memory.
     // TODO: Use the file size information in inode check.
-    if(read_data(dentry.inode_idx, 0, (uint8_t *)0x08048000, 4 * 1024 * 1024) == -1)
+    if(read_data(dentry.inode_idx, 0, (uint8_t *)PROGRAM_IMAGE_START_ADDRESS, USER_STACK_SIZE) == -1)
         return -1;
     
     return entry_address;

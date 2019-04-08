@@ -13,6 +13,12 @@
 eax_saved:
     .long 0
 
+SYSCALL_NUM_MIN:
+    .long 1
+
+SYSCALL_NUM_MAX:
+    .long 10
+
 .text
 
 .global common_interrupt
@@ -156,9 +162,9 @@ syscall_linkage:
     pushal
 
     # check syscall number
-    cmpl $1, %eax
+    cmpl SYSCALL_NUM_MIN, %eax
     jl syscall_linkage_error
-    cmpl $10, %eax
+    cmpl SYSCALL_NUM_MAX, %eax
     jg syscall_linkage_error
 
     # parameters
