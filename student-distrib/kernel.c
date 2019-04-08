@@ -179,6 +179,8 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Run tests */
     launch_tests();
 #endif
+    // Clear the screen.
+    clear();
     /* Execute the first program ("shell") ... */
     syscall_execute((uint8_t*)"shell");
     /* Spin (nicely, so we don't chew up cycles) */

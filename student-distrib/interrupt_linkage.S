@@ -155,7 +155,7 @@ syscall_linkage:
     # save all registers
     pushal
 
-    # check irq number
+    # check syscall number
     cmpl $1, %eax
     jl syscall_linkage_error
     cmpl $10, %eax
