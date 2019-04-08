@@ -129,6 +129,7 @@ int32_t syscall_execute (const uint8_t* command) {
             return -1;
     }
 
+    // Check if program exist in file system and has correct magic number.
     if(!check_executable(filename))
         return -1;
     
@@ -145,7 +146,8 @@ int32_t syscall_execute (const uint8_t* command) {
     // unused so far
     //uint32_t user_stack_size = 0x00400000;
 
-    // Video memory page and kernel memory page are the same with the initial setting.
+    // Set up paging for user process.
+    //  Video memory page and kernel memory page are the same with the initial setting.
     for(i = 0; i < NUM_PDT_SIZE; ++i)
         page_directory_program[pid][i] = page_directory_initial[i];
 
@@ -178,21 +180,20 @@ int32_t syscall_execute (const uint8_t* command) {
     uint32_t kernel_stack_size = 0x2000;
 
     // TODO: PCB stuffs need to be refined.
+    
+    // Set up PCB for user process.
     pcb_t *pcb = (pcb_t *)kernel_space_base_address;
     pcb->pid = pid;
-
-    // Initialize first two entry 
+        
+    // Initialize file descriptor array.
     pcb->file_array[0].fops = stdin;
     pcb->file_array[1].fops = stdout;
 
     pcb->file_array[0].flag = 1;
     pcb->file_array[1].flag = 1;
 
-    for(i=2;i<MAX_FD_SIZE;i++){
-        
+    for(i = 2; i < MAX_FD_SIZE; i++)
         pcb -> file_array[i].flag = 0; 
-
-    }
 
     if(pid == 0) {
         // First process does not have parent.
