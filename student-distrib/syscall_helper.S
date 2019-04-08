@@ -8,6 +8,17 @@
 
 .global switch_to_user
 
+
+# switch_to_user
+# DISCRIPTION: push iret contents to stack and switch to user process
+# INPUT: ds -- user data segment register
+#        esp -- stack pointer for user stack space
+#        cs -- user code segment register
+#        eip -- entry address for user program
+# OUTPUT: NONE
+# RETURN VALUE: NONE
+# SIDE EFFECTS: NONE
+
 switch_to_user:
     cli
 

@@ -351,7 +351,7 @@ extern int32_t load_executable(const uint8_t *filename) {
     // Get the entry address.
     uint32_t entry_address;
 
-    if(read_data(dentry.inode_idx, 24, &entry_address, 4) != 4)
+    if(read_data(dentry.inode_idx, 24, (uint8_t *)&entry_address, 4) != 4)
         return -1;
 
     // Load entire program image into memory.
