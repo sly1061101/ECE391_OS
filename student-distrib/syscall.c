@@ -86,8 +86,10 @@ int32_t syscall_execute (const uint8_t* command) {
     // Request an available pid.
     uint32_t pid = request_pid();
     // If no more pid is available we cannot proceed.
-    if(pid == -1)
-        return -1;
+    if(pid == -1) {
+        printf("No more process is allowed!\n");
+        return -2;
+    }
 
     // The user space of a process in physical memory starts at 8MB + (pid * 4MB).
     uint32_t user_space_base_address = 0x00800000 + pid * 0x00400000;
