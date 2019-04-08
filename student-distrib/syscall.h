@@ -5,6 +5,14 @@
 
 #include "types.h"
 
+// #define MAX_FD_SIZE 8
+// #define MIN_FD_SIZE 2
+#define RTC_TYPE        0
+#define DIR_TYPE        1
+#define FILE_TYPE       2
+#define MIN_FD_SIZE     2
+
+
 // Use regular integer array to store function addresses directly.
 //  Cannot use function pointer array because parameter lists are different.
 extern uint32_t syscall_jump_table[11];
