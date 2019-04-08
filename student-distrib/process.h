@@ -7,12 +7,39 @@
 
 #include "types.h"
 
+#define MAX_FD_SIZE 8
+#define MIN_FD_SIZE 2
+
+typedef int32_t (*read_t)(int32_t fd, void* buf, int32_t nbytes);
+typedef int32_t (*write_t)(int32_t fd, const void* buf, int32_t nbytes);
+typedef int32_t (*open_t)(const uint8_t* filename);
+typedef int32_t (*close_t)(int32_t fd);
+
+// fops struct
+typedef struct fops {
+    read_t read_func;
+    write_t write_func;
+    open_t open_func;
+    close_t close_func;
+} fops_t;
+
+// file description struct
+typedef struct file_desc {
+    fops_t fops;
+    int32_t inode;
+    int32_t file_position;
+    int32_t flag;
+} file_desc_t;
+
+// modified
 typedef struct pcb {
     uint32_t pid;
     uint32_t parent_pid;
     struct pcb *parent_pcb;
     uint32_t parent_ebp;
     uint32_t parent_esp;
+    file_desc_t file_array[MAX_FD_SIZE];
+    char available[MAX_FD_SIZE]; // when is it used?
 } pcb_t;
 
 // Current number of processes.

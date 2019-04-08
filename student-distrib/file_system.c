@@ -250,11 +250,12 @@ int32_t directory_read(int32_t fd, void *buf, int32_t nbytes) {
     int i = 0;
     // Maximum filename length is 32 according to filesystem specification.
     while(i < nbytes && i < FILE_NAME_MAX_LENGTH) {
+        // If has reached end-of-line, stop here.
+        if(dentry.file_name[i] == '\0')
+            break;
+
         *((char *)buf + i) = dentry.file_name[i];
         i++;
-        // If last copied character is end-of-line, stop here.
-        if(dentry.file_name[i - 1] == '\0')
-            break;
     }
 
     opened_directory_offset++;
