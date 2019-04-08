@@ -27,6 +27,8 @@ fops_t dir_ops = {(read_t)directory_read, (write_t)directory_write, (open_t)dire
 //  than 255, since the parameter of syscall_halt() is uint8 type and
 //  we want status 256 when halted by exception.
 int32_t halt_current_process(uint32_t status) {
+    int i;
+
     pcb_t *pcb = get_current_pcb();
 
     if(pcb->parent_pcb == NULL) {
@@ -141,6 +143,12 @@ int32_t syscall_execute (const uint8_t* command) {
 
     pcb->file_array[0].fops = stdin;
     pcb->file_array[1].fops = stdout;
+
+    for(i=2;i<MAX_FD_SIZE;i++){
+        
+        pcb -> file_array[i].flag = 0; 
+
+    }
 
     if(pid == 0) {
         // First process does not have parent.
