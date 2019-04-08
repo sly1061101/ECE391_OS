@@ -31,6 +31,13 @@ int32_t halt_current_process(uint32_t status) {
 
     pcb_t *pcb = get_current_pcb();
 
+    for(i=2;i<MAX_FD_SIZE;i++){
+        if(pcb -> file_array[i].flag != 0){
+            pcb -> file_array[i].fops.close_func(i);
+            pcb -> file_array[i].flag =0;
+        }
+    }
+
     if(pcb->parent_pcb == NULL) {
         // If the first shell is halted, restart it automatically.
         (void) release_pid(pcb->pid);
