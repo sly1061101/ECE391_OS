@@ -57,13 +57,12 @@ int32_t halt_current_process(uint32_t status) {
     }
 
     // The kernel space of a process in physical memory starts at 8MB - 8KB - 8KB * pid.
-    uint32_t kernel_space_base_address = 0x800000 - 0x2000 - 0x2000 * pcb->parent_pcb->pid;
-    // Kernel stack size is 8KB.
-    uint32_t kernel_stack_size = 0x2000;
+    uint32_t kernel_space_base_address = KERNEL_STACK_BOT - KERNEL_STACK_SIZE - KERNEL_STACK_SIZE * pcb->parent_pcb->pid;
+
 
     // Restore TSS for parent process.
     tss.ss0 = KERNEL_DS;
-    tss.esp0 = kernel_space_base_address + kernel_stack_size - 1;
+    tss.esp0 = kernel_space_base_address + KERNEL_STACK_SIZE - 1;
 
     // Restore page directory for parent process.
     load_page_directory(page_directory_program[pcb->parent_pid]);
@@ -175,9 +174,7 @@ int32_t syscall_execute (const uint8_t* command) {
     }
 
     // The kernel space of a process in physical memory starts at 8MB - 8KB - 8KB * pid.
-    uint32_t kernel_space_base_address = 0x800000 - 0x2000 - 0x2000 * pid;
-    // Kernel stack size is 8KB.
-    uint32_t kernel_stack_size = 0x2000;
+    uint32_t kernel_space_base_address = KERNEL_STACK_BOT - KERNEL_STACK_SIZE - KERNEL_STACK_SIZE * pid;
 
     // TODO: PCB stuffs need to be refined.
     
@@ -226,7 +223,7 @@ int32_t syscall_execute (const uint8_t* command) {
     // Modify TSS for context switch.
     tss.ss0 = KERNEL_DS;
     // Kernel stacks begins at highest address of kernel space and grows towards lower address.
-    tss.esp0 = kernel_space_base_address + kernel_stack_size - 1;
+    tss.esp0 = kernel_space_base_address + KERNEL_STACK_SIZE - 1;
 
     // PUSH IRET context and switch to user mode.
     //  0x83fffff is the highest virtual address of user stack.

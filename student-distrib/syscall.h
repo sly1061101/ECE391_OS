@@ -10,6 +10,8 @@
 #define FILE_TYPE       2
 #define MIN_FD_SIZE     2
 
+#define KERNEL_STACK_SIZE 0x2000
+#define KERNEL_STACK_BOT 0x800000
 
 // Use regular integer array to store function addresses directly.
 // Cannot use function pointer array because parameter lists are different.
