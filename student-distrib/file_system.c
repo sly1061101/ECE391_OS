@@ -323,7 +323,13 @@ int file_system_init(uint32_t base_address) {
     return 0;
 }
 
-// Check if an executable exists and has correct magic number.
+/*check_executable
+* DISCRIPTION: Check if an executable exists and has correct magic number.
+* INPUT:    const uint8_t *filename -- executable name to be checked.
+* OUTPUT: NONE
+* RETURN VALUE: 1 if pass, 0 if fail.
+* SIDE EFFECTS: none.
+*/
 int32_t check_executable(const uint8_t *filename) {
     dentry_t dentry;
 
@@ -346,7 +352,13 @@ int32_t check_executable(const uint8_t *filename) {
     return 1;
 }
 
-// Load the executable into memory.
+/*load_executable
+* DISCRIPTION: Load the executable into memory..
+* INPUT:    const uint8_t *filename -- executable name to be loaded.
+* OUTPUT: NONE
+* RETURN VALUE: 0 if success, -1 if error.
+* SIDE EFFECTS: none.
+*/
 extern int32_t load_executable(const uint8_t *filename) {
     if(!check_executable(filename))
         return -1;
