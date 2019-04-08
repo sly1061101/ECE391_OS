@@ -165,12 +165,12 @@ int32_t syscall_execute (const uint8_t* command) {
     // Load the above page directory.
     load_page_directory(page_directory_program[pid]);
 
-    // TODO: After this line, we must restore the page directory on error.
-
     // Load executable into memory.
     uint32_t entry_address = load_executable(filename);
-    if(entry_address == -1)
+    if(entry_address == -1) {
+        load_page_directory(page_directory_program[get_current_pcb()->pid]);
         return -1;
+    }
 
     // The kernel space of a process in physical memory starts at 8MB - 8KB - 8KB * pid.
     uint32_t kernel_space_base_address = 0x800000 - 0x2000 - 0x2000 * pid;
