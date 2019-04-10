@@ -49,7 +49,7 @@ int32_t halt_current_process(uint32_t status) {
 
     for(i=VAL_2;i<MAX_FD_SIZE;i++){
         if(pcb -> file_array[i].flag != 0){
-            pcb -> file_array[i].fops.close_func(i);
+            pcb -> file_array[i].fops->close_func(i);
             pcb -> file_array[i].flag =0;
         }
     }
@@ -187,8 +187,8 @@ int32_t syscall_execute (const uint8_t* command) {
     pcb->pid = pid;
         
     // Initialize file descriptor array.
-    pcb->file_array[0].fops = stdin;
-    pcb->file_array[1].fops = stdout;
+    pcb->file_array[0].fops = &stdin;
+    pcb->file_array[1].fops = &stdout;
 
     pcb->file_array[0].flag = 1;
     pcb->file_array[1].flag = 1;
@@ -260,7 +260,7 @@ int32_t syscall_read (int32_t fd, void* buf, int32_t nbytes) {
     pcb_t * curr_pcb = get_current_pcb(); 
 
     // call read function
-    int num_byte_read = curr_pcb->file_array[fd].fops.read_func(fd , buf , nbytes);
+    int num_byte_read = curr_pcb->file_array[fd].fops->read_func(fd , buf , nbytes);
 
     // error condition when return byte is negative
     if(num_byte_read < 0)
@@ -295,7 +295,7 @@ int32_t syscall_write (int32_t fd, const void* buf, int32_t nbytes) {
 
 
     // call write function   
-    int num_byte_write = curr_pcb->file_array[fd].fops.write_func(fd , buf , nbytes);
+    int num_byte_write = curr_pcb->file_array[fd].fops->write_func(fd , buf , nbytes);
 
     // error condition when return byte is negative
     if(num_byte_write < 0)
@@ -348,21 +348,21 @@ int32_t syscall_open(const uint8_t* filename) {
     switch(fileopen.file_type){
 
         case RTC_TYPE:
-        curr_pcb -> file_array[i].fops = rtc_ops;
+        curr_pcb -> file_array[i].fops = &rtc_ops;
         curr_pcb -> file_array[i].inode = 0;
-        curr_pcb -> file_array[i].fops.open_func(filename);
+        curr_pcb -> file_array[i].fops->open_func(filename);
         return i;
 
         case DIR_TYPE:
-        curr_pcb -> file_array[i].fops = dir_ops;
+        curr_pcb -> file_array[i].fops = &dir_ops;
         curr_pcb -> file_array[i].inode = 0;
-        curr_pcb -> file_array[i].fops.open_func(filename);
+        curr_pcb -> file_array[i].fops->open_func(filename);
         return i;
 
         case FILE_TYPE:
-        curr_pcb -> file_array[i].fops = file_ops;
+        curr_pcb -> file_array[i].fops = &file_ops;
         curr_pcb -> file_array[i].inode = 0;
-        curr_pcb -> file_array[i].fops.open_func(filename);
+        curr_pcb -> file_array[i].fops->open_func(filename);
         return i;
 
         default:
@@ -395,7 +395,7 @@ int32_t syscall_close(int32_t fd) {
     }
 
     // close the file
-    curr_pcb -> file_array[fd].fops.close_func(fd);
+    curr_pcb -> file_array[fd].fops->close_func(fd);
     curr_pcb -> file_array[fd].flag = 0;
 
     return 0;
