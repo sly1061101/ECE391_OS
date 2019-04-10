@@ -26,7 +26,7 @@ typedef struct fops {
 
 // file description struct
 typedef struct file_desc {
-    fops_t fops;
+    fops_t* fops;
     int32_t inode;
     int32_t flag;
 } file_desc_t;
