@@ -10,7 +10,9 @@
 #define VAL_2 2
 #define VAL_22 22
 #define USER_STACK_VIRTUAL_PAGE_INDEX 32
-
+#define VID_PAGE_START 0x8000000
+#define VID_PAGE_END 0x8400000
+#define VIDEO (0xB8000 + 0xA000000)
 // jump table for various system calls
 uint32_t syscall_jump_table[NUM_SYSCALL] =   {   0,
                                         (uint32_t)syscall_halt, (uint32_t)syscall_execute, (uint32_t)syscall_read,
@@ -408,7 +410,15 @@ int32_t syscall_getargs (uint8_t* buf, int32_t nbytes) {
 }
 
 int32_t syscall_vidmap (uint8_t** screen_start) {
-    return -1;
+    if(screen_start < (uint8_t **)VID_PAGE_START || screen_start >= (uint8_t **)VID_PAGE_END)
+    {
+        return -1;
+    }
+    else
+    {
+        *screen_start = (uint8_t*) (VIDEO);
+        return  0;
+    }
 }
 
 int32_t syscall_set_handler (int32_t signum, void* handler) {
