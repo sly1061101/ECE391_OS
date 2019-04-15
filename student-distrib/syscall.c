@@ -280,6 +280,9 @@ int32_t syscall_read (int32_t fd, void* buf, int32_t nbytes) {
     // get current pcb
     pcb_t * curr_pcb = get_current_pcb(); 
 
+    if(curr_pcb->file_array[fd].flag == 0)
+        return -1;
+
     // call read function
     int num_byte_read = curr_pcb->file_array[fd].fops->read_func(fd , buf , nbytes);
 
@@ -314,6 +317,8 @@ int32_t syscall_write (int32_t fd, const void* buf, int32_t nbytes) {
     // get current pcd
     pcb_t * curr_pcb = get_current_pcb();
 
+    if(curr_pcb->file_array[fd].flag == 0)
+        return -1;
 
     // call write function   
     int num_byte_write = curr_pcb->file_array[fd].fops->write_func(fd , buf , nbytes);
