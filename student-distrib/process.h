@@ -10,6 +10,7 @@
 #define MAX_FD_SIZE 8
 #define MIN_FD_SIZE 2
 #define HIGH_BIT_MASK 0xffffe000
+#define MAX_ARG_SIZE 128
 
 typedef int32_t (*read_t)(int32_t fd, void* buf, int32_t nbytes);
 typedef int32_t (*write_t)(int32_t fd, const void* buf, int32_t nbytes);
@@ -40,6 +41,7 @@ typedef struct pcb {
     uint32_t parent_ebp;
     uint32_t parent_esp;
     file_desc_t file_array[MAX_FD_SIZE];
+    int8_t  args_array[MAX_ARG_SIZE];
     char available[MAX_FD_SIZE]; // when is it used?
 } pcb_t;
 

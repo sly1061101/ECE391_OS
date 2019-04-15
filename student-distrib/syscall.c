@@ -118,10 +118,11 @@ int32_t syscall_execute (const uint8_t* command) {
         return -1;
 
     int i;
-
+    int j;
     // Parse the executable name.
     // TODO: Parse remaining arguments.
     uint8_t filename[FILE_NAME_MAX_LENGTH + 1];
+    uint8_t args[128];
     for(i = 0; i < strlen((int8_t*)command) + 1; ++i) {
         if(command[i] == ' ' || command[i] == '\0') {
             memcpy(filename, command, i);
@@ -132,6 +133,23 @@ int32_t syscall_execute (const uint8_t* command) {
         if(i >= FILE_NAME_MAX_LENGTH)
             return -1;
     }
+
+        j = i;
+    while(command[j] == ' ') {
+        // strip spaces
+        j++;
+    }
+    i = 0;
+    while(command[j] != '\0' && command[j] != '\n' && command[j] != '\r' && j < MAX_ARG_SIZE) {
+        // get args
+        args[i] = command[j];
+        i++;
+        j++;
+    }
+   
+    // assign null to the last element
+    args[i] = '\0';
+
 
     // Check if program exist in file system and has correct magic number.
     if(!check_executable(filename))
@@ -186,6 +204,8 @@ int32_t syscall_execute (const uint8_t* command) {
     // Set up PCB for user process.
     pcb_t *pcb = (pcb_t *)kernel_space_base_address;
     pcb->pid = pid;
+
+    memcpy(pcb->args_array,args,128);
         
     // Initialize file descriptor array.
     pcb->file_array[0].fops = &stdin;
@@ -408,8 +428,39 @@ int32_t syscall_close(int32_t fd) {
 
 // TODO
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes) {
-    return -1;
+
+    int i;
+
+    // handle error condition
+    if(buf==NULL || nbytes ==0 ){
+      return -1;  
+    }
+
+    //create current pcb
+    pcb_t * curr_pcb = get_current_pcb();
+
+    /* should we check number of bytes? if we keep copying or return -1? */
+
+    
+
+    if(strlen(curr_pcb->args_array) <= nbytes){
+
+        if(strlen(curr_pcb->args_array)==0){
+        return -1;
+    }else{
+        // when we can use strcpy to copy entirely
+        strcpy(buf,curr_pcb->args_array);
+    }
+    }else{
+        // when we need to copy one by one
+        for (i = 0; i < nbytes; i++) {
+            buf[i] = curr_pcb->args_array[i];
+        }
+    }
+
+    return 0;
 }
+
 
 int32_t syscall_vidmap (uint8_t** screen_start) {
     if(screen_start < (uint8_t **)VID_PAGE_START || screen_start >= (uint8_t **)VID_PAGE_END)
