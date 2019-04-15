@@ -176,8 +176,7 @@ int32_t file_read(int32_t fd, void *buf, int32_t nbytes) {
     
     int ret = read_data(pcb->file_array[fd].inode, pcb->file_array[fd].file_position, buf, nbytes);
 
-    printf("DEBUG: fd = %d, nbytes = %d, ret = %d\n", fd, nbytes, ret);
-
+    
     if(ret == -1)
         return -1;
     

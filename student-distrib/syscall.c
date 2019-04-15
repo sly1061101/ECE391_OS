@@ -51,9 +51,7 @@ int32_t halt_current_process(uint32_t status) {
 
     for(i=VAL_2;i<MAX_FD_SIZE;i++){
         if(pcb -> file_array[i].flag != 0){
-            pcb -> file_array[i].fops->close_func(i);
-            pcb -> file_array[i].flag = 0;
-            pcb -> file_array[i].file_position = 0;
+             syscall_close(i);
         }
     }
 
@@ -400,6 +398,9 @@ int32_t syscall_close(int32_t fd) {
     // close the file
     curr_pcb -> file_array[fd].fops->close_func(fd);
     curr_pcb -> file_array[fd].flag = 0;
+    curr_pcb -> file_array[fd].file_position = 0;
+    curr_pcb -> file_array[fd].inode = 0;
+    curr_pcb -> file_array[fd].fops = NULL;
 
     return 0;
 }
