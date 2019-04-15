@@ -1,4 +1,5 @@
 #include "file_system.h"
+#include "process.h"
 
 #include "lib.h"
 
@@ -145,12 +146,6 @@ int32_t file_open(const uint8_t *filename) {
     if(dentry.file_type != REGULAR_FILE)
         return -1;
     
-    memcpy(&dentry_opened_file, &dentry, sizeof(dentry_t));
-
-    opened_file_offset = 0;
-
-    has_file_opened = 1;
-    
     return 0;
 }
 
@@ -163,11 +158,6 @@ int32_t file_open(const uint8_t *filename) {
 */
 
 int32_t file_close(int32_t fd) {
-    if(!has_file_opened)
-        return -1;
-    
-    has_file_opened = 0;
-
     return 0;
 }
 
@@ -182,15 +172,15 @@ int32_t file_close(int32_t fd) {
 */
 
 int32_t file_read(int32_t fd, void *buf, int32_t nbytes) {
-    if(!has_file_opened)
-        return -1;
+    pcb_t *pcb = get_current_pcb();
     
-    int ret = read_data(dentry_opened_file.inode_idx, opened_file_offset, buf, nbytes);
+    int ret = read_data(pcb->file_array[fd].inode, pcb->file_array[fd].file_position, buf, nbytes);
 
+    
     if(ret == -1)
         return -1;
     
-    opened_file_offset += ret;
+    pcb->file_array[fd].file_position += ret;
 
     return ret;
 }

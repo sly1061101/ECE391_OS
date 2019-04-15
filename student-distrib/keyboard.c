@@ -436,6 +436,10 @@ int terminal_close(int32_t fd)
  */
 int terminal_read(int32_t fd, unsigned char* buf, int size)
 {
+  // Only Stdin can be read from.
+  if(fd != 0)
+    return -1;
+
   if(size < 0)
     return -1;
 
@@ -465,14 +469,19 @@ int terminal_read(int32_t fd, unsigned char* buf, int size)
  */
 int terminal_write(int32_t fd, unsigned char* buf, int size)
 {
+    // Only Stout can be written to.
+    if(fd != 1)
+      return -1;
+
     if(buf==NULL || size < 0)
       return -1;
 
     int i;
     for(i = 0; i < size; i++)
     {
-      if(buf[i] == '\0')
-        break;
+      // CAUTION: commented for test_terminal_write_size_larger_than_actual
+      // if(buf[i] == '\0')
+      //   break;
       putc(buf[i]);
     }
     return i;

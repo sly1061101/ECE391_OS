@@ -10,7 +10,12 @@
 #define VAL_2 2
 #define VAL_22 22
 #define USER_STACK_VIRTUAL_PAGE_INDEX 32
-
+#define VID_PAGE_START 0x8000000
+#define VID_PAGE_END 0x8400000
+#define VIDEO 0xB8000
+#define VAL_1024 1024
+#define VAL_4 4
+#define VAL_12 12
 // jump table for various system calls
 uint32_t syscall_jump_table[NUM_SYSCALL] =   {   0,
                                         (uint32_t)syscall_halt, (uint32_t)syscall_execute, (uint32_t)syscall_read,
@@ -21,8 +26,8 @@ uint32_t syscall_jump_table[NUM_SYSCALL] =   {   0,
 
 
 // functions for stdin/out/rtc/file/dic for distinct tables 
-fops_t stdin = {(read_t)terminal_read, NULL, NULL, NULL};
-fops_t stdout = {NULL, (write_t)terminal_write, NULL, NULL};
+fops_t stdin = {(read_t)terminal_read, (write_t)terminal_write, (open_t)terminal_open, (close_t)terminal_close};
+fops_t stdout = {(read_t)terminal_read, (write_t)terminal_write, (open_t)terminal_open, (close_t)terminal_close};
 fops_t rtc_ops = {(read_t)rtc_read, (write_t)rtc_write, (open_t)rtc_open, (close_t)rtc_close};
 fops_t file_ops = {(read_t)file_read, (write_t)file_write, (open_t)file_open, (close_t)file_close};
 fops_t dir_ops = {(read_t)directory_read, (write_t)directory_write, (open_t)directory_open, (close_t)directory_close}; 
@@ -49,8 +54,7 @@ int32_t halt_current_process(uint32_t status) {
 
     for(i=VAL_2;i<MAX_FD_SIZE;i++){
         if(pcb -> file_array[i].flag != 0){
-            pcb -> file_array[i].fops->close_func(i);
-            pcb -> file_array[i].flag =0;
+             syscall_close(i);
         }
     }
 
@@ -117,10 +121,11 @@ int32_t syscall_execute (const uint8_t* command) {
         return -1;
 
     int i;
-
+    int j;
     // Parse the executable name.
     // TODO: Parse remaining arguments.
     uint8_t filename[FILE_NAME_MAX_LENGTH + 1];
+    uint8_t args[MAX_ARG_SIZE];
     for(i = 0; i < strlen((int8_t*)command) + 1; ++i) {
         if(command[i] == ' ' || command[i] == '\0') {
             memcpy(filename, command, i);
@@ -131,6 +136,23 @@ int32_t syscall_execute (const uint8_t* command) {
         if(i >= FILE_NAME_MAX_LENGTH)
             return -1;
     }
+
+        j = i;
+    while(command[j] == ' ') {
+        // strip spaces
+        j++;
+    }
+    i = 0;
+    while(command[j] != '\0' && command[j] != '\n' && command[j] != '\r' && j < MAX_ARG_SIZE) {
+        // get args
+        args[i] = command[j];
+        i++;
+        j++;
+    }
+   
+    // assign null to the last element
+    args[i] = '\0';
+
 
     // Check if program exist in file system and has correct magic number.
     if(!check_executable(filename))
@@ -185,6 +207,8 @@ int32_t syscall_execute (const uint8_t* command) {
     // Set up PCB for user process.
     pcb_t *pcb = (pcb_t *)kernel_space_base_address;
     pcb->pid = pid;
+
+    memcpy(pcb->args_array,args,MAX_ARG_SIZE);
         
     // Initialize file descriptor array.
     pcb->file_array[0].fops = &stdin;
@@ -259,6 +283,9 @@ int32_t syscall_read (int32_t fd, void* buf, int32_t nbytes) {
     // get current pcb
     pcb_t * curr_pcb = get_current_pcb(); 
 
+    if(curr_pcb->file_array[fd].flag == 0)
+        return -1;
+
     // call read function
     int num_byte_read = curr_pcb->file_array[fd].fops->read_func(fd , buf , nbytes);
 
@@ -293,6 +320,8 @@ int32_t syscall_write (int32_t fd, const void* buf, int32_t nbytes) {
     // get current pcd
     pcb_t * curr_pcb = get_current_pcb();
 
+    if(curr_pcb->file_array[fd].flag == 0)
+        return -1;
 
     // call write function   
     int num_byte_write = curr_pcb->file_array[fd].fops->write_func(fd , buf , nbytes);
@@ -349,19 +378,19 @@ int32_t syscall_open(const uint8_t* filename) {
 
         case RTC_TYPE:
         curr_pcb -> file_array[i].fops = &rtc_ops;
-        curr_pcb -> file_array[i].inode = 0;
+        curr_pcb -> file_array[i].inode = fileopen.inode_idx;
         curr_pcb -> file_array[i].fops->open_func(filename);
         return i;
 
         case DIR_TYPE:
         curr_pcb -> file_array[i].fops = &dir_ops;
-        curr_pcb -> file_array[i].inode = 0;
+        curr_pcb -> file_array[i].inode = fileopen.inode_idx;
         curr_pcb -> file_array[i].fops->open_func(filename);
         return i;
 
         case FILE_TYPE:
         curr_pcb -> file_array[i].fops = &file_ops;
-        curr_pcb -> file_array[i].inode = 0;
+        curr_pcb -> file_array[i].inode = fileopen.inode_idx;
         curr_pcb -> file_array[i].fops->open_func(filename);
         return i;
 
@@ -397,18 +426,106 @@ int32_t syscall_close(int32_t fd) {
     // close the file
     curr_pcb -> file_array[fd].fops->close_func(fd);
     curr_pcb -> file_array[fd].flag = 0;
+    curr_pcb -> file_array[fd].file_position = 0;
+    curr_pcb -> file_array[fd].inode = 0;
+    curr_pcb -> file_array[fd].fops = NULL;
 
     return 0;
 }
 
-
-// TODO
+/*
+ *   syscall_getargs
+ *   DESCRIPTION: reads command line arguments into
+ *                a user-level buffer
+ *   INPUTS: buf -- user-level buffer
+ *           nbytes -- maximum number of bytes 
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success, -1 on failure
+ *   SIDE EFFECTS: none
+ */
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes) {
-    return -1;
+
+    int i;
+
+    // handle error condition
+    if(buf==NULL || nbytes ==0 ){
+      return -1;  
+    }
+
+    //create current pcb
+    pcb_t * curr_pcb = get_current_pcb();
+
+    /* should we check number of bytes? if we keep copying or return -1? */
+ 
+    if(strlen(curr_pcb->args_array) <= nbytes){
+
+        if(strlen(curr_pcb->args_array)==0){
+        return -1;
+    }else{
+        // when we can use strcpy to copy entirely
+        strcpy((int8_t*)buf,(int8_t*)(curr_pcb->args_array));
+    }
+    }else{
+        // when we need to copy one by one
+        for (i = 0; i < nbytes; i++) {
+            buf[i] = curr_pcb->args_array[i];
+        }
+    }
+
+    return 0;
 }
 
+/*
+ *   syscall_vidmap
+ *   DESCRIPTION: maps thevideo memory into user space
+ *   INPUTS: screen_start -- pointer to screen_start pointer
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success, -1 on failure
+ *   SIDE EFFECTS: none
+ */
+
 int32_t syscall_vidmap (uint8_t** screen_start) {
-    return -1;
+    if(screen_start < (uint8_t **)VID_PAGE_START || screen_start >= (uint8_t **)VID_PAGE_END)
+    {
+        return -1;
+    }
+    else
+    {
+        const uint32_t PD_entry_idx = 35;
+        const uint32_t PT_entry_idx = 512;
+
+        // Set up page table.
+        page_table_program_vidmap[PT_entry_idx].present = 1;
+        page_table_program_vidmap[PT_entry_idx].read_write = 1;
+        page_table_program_vidmap[PT_entry_idx].user_supervisor = 1;
+        page_table_program_vidmap[PT_entry_idx].write_through = 0;
+        page_table_program_vidmap[PT_entry_idx].cache_disabled = 0;
+        page_table_program_vidmap[PT_entry_idx].accessed = 0;
+        page_table_program_vidmap[PT_entry_idx].dirty = 0;
+        page_table_program_vidmap[PT_entry_idx].pt_attribute_index = 0;
+        page_table_program_vidmap[PT_entry_idx].global_page = 0;
+        page_table_program_vidmap[PT_entry_idx].available = 0;
+        page_table_program_vidmap[PT_entry_idx].page_base_address = VIDEO >> VAL_12;
+
+        // Modify processs page directory.
+        uint32_t pid = get_current_pcb()->pid;
+        page_directory_program[pid][PD_entry_idx].entry_PT.present = 1;
+        page_directory_program[pid][PD_entry_idx].entry_PT.read_write = 1;
+        page_directory_program[pid][PD_entry_idx].entry_PT.user_supervisor = 1; // user privilege
+        page_directory_program[pid][PD_entry_idx].entry_PT.write_through = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.cache_disabled = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.accessed = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.reserved = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.page_size = 0; // 4KB page table
+        page_directory_program[pid][PD_entry_idx].entry_PT.global_page = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.available = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.pt_base_address = (uint32_t)page_table_program_vidmap >> VAL_12;
+
+        // Calculate address.
+        *screen_start = (uint8_t*)(PD_entry_idx * VAL_4 * VAL_1024 * VAL_1024 + PT_entry_idx * VAL_4 * VAL_1024);
+
+        return  0;
+    }
 }
 
 int32_t syscall_set_handler (int32_t signum, void* handler) {

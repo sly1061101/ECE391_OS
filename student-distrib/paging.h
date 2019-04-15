@@ -68,6 +68,8 @@ extern pt_entry_t page_table_initial[NUM_PT_SIZE];
 
 // Page directory for user programs, will be set up in execute syscall.
 extern pdt_entry_t page_directory_program[MAX_PROCESS_NUMBER][NUM_PDT_SIZE];
+// Page table for user program video memory mapping.
+extern pt_entry_t page_table_program_vidmap[NUM_PT_SIZE];
 
 // Load a page directory into CR3 register.
 extern void load_page_directory(pdt_entry_t page_directory_initial[NUM_PDT_SIZE]);
