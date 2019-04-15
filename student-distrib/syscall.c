@@ -26,8 +26,8 @@ uint32_t syscall_jump_table[NUM_SYSCALL] =   {   0,
 
 
 // functions for stdin/out/rtc/file/dic for distinct tables 
-fops_t stdin = {(read_t)terminal_read, (write_t)terminal_write, (open_t)terminal_open, (open_t)terminal_close};
-fops_t stdout = {(read_t)terminal_read, (write_t)terminal_write, (open_t)terminal_open, (open_t)terminal_close};
+fops_t stdin = {(read_t)terminal_read, (write_t)terminal_write, (open_t)terminal_open, (close_t)terminal_close};
+fops_t stdout = {(read_t)terminal_read, (write_t)terminal_write, (open_t)terminal_open, (close_t)terminal_close};
 fops_t rtc_ops = {(read_t)rtc_read, (write_t)rtc_write, (open_t)rtc_open, (close_t)rtc_close};
 fops_t file_ops = {(read_t)file_read, (write_t)file_write, (open_t)file_open, (close_t)file_close};
 fops_t dir_ops = {(read_t)directory_read, (write_t)directory_write, (open_t)directory_open, (close_t)directory_close}; 
@@ -125,7 +125,7 @@ int32_t syscall_execute (const uint8_t* command) {
     // Parse the executable name.
     // TODO: Parse remaining arguments.
     uint8_t filename[FILE_NAME_MAX_LENGTH + 1];
-    uint8_t args[128];
+    uint8_t args[MAX_ARG_SIZE];
     for(i = 0; i < strlen((int8_t*)command) + 1; ++i) {
         if(command[i] == ' ' || command[i] == '\0') {
             memcpy(filename, command, i);
@@ -208,7 +208,7 @@ int32_t syscall_execute (const uint8_t* command) {
     pcb_t *pcb = (pcb_t *)kernel_space_base_address;
     pcb->pid = pid;
 
-    memcpy(pcb->args_array,args,128);
+    memcpy(pcb->args_array,args,MAX_ARG_SIZE);
         
     // Initialize file descriptor array.
     pcb->file_array[0].fops = &stdin;
@@ -463,7 +463,7 @@ int32_t syscall_getargs (uint8_t* buf, int32_t nbytes) {
         return -1;
     }else{
         // when we can use strcpy to copy entirely
-        strcpy(buf,curr_pcb->args_array);
+        strcpy((int8_t*)buf,(int8_t*)(curr_pcb->args_array));
     }
     }else{
         // when we need to copy one by one
@@ -522,7 +522,7 @@ int32_t syscall_vidmap (uint8_t** screen_start) {
         page_directory_program[pid][PD_entry_idx].entry_PT.pt_base_address = (uint32_t)page_table_program_vidmap >> VAL_12;
 
         // Calculate address.
-        *screen_start = PD_entry_idx * VAL_4 * VAL_1024 * VAL_1024 + PT_entry_idx * VAL_4 * VAL_1024;
+        *screen_start = (uint8_t*)(PD_entry_idx * VAL_4 * VAL_1024 * VAL_1024 + PT_entry_idx * VAL_4 * VAL_1024);
 
         return  0;
     }
