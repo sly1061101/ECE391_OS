@@ -23,8 +23,8 @@ uint32_t syscall_jump_table[NUM_SYSCALL] =   {   0,
 
 
 // functions for stdin/out/rtc/file/dic for distinct tables 
-fops_t stdin = {(read_t)terminal_read, NULL, NULL, NULL};
-fops_t stdout = {NULL, (write_t)terminal_write, NULL, NULL};
+fops_t stdin = {(read_t)terminal_read, (write_t)terminal_write, (open_t)terminal_open, (open_t)terminal_close};
+fops_t stdout = {(read_t)terminal_read, (write_t)terminal_write, (open_t)terminal_open, (open_t)terminal_close};
 fops_t rtc_ops = {(read_t)rtc_read, (write_t)rtc_write, (open_t)rtc_open, (close_t)rtc_close};
 fops_t file_ops = {(read_t)file_read, (write_t)file_write, (open_t)file_open, (close_t)file_close};
 fops_t dir_ops = {(read_t)directory_read, (write_t)directory_write, (open_t)directory_open, (close_t)directory_close}; 
