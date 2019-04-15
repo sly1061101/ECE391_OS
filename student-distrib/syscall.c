@@ -12,7 +12,7 @@
 #define USER_STACK_VIRTUAL_PAGE_INDEX 32
 #define VID_PAGE_START 0x8000000
 #define VID_PAGE_END 0x8400000
-#define VIDEO (0xB8000 + 0xA000000)
+#define VIDEO 0xB8000
 // jump table for various system calls
 uint32_t syscall_jump_table[NUM_SYSCALL] =   {   0,
                                         (uint32_t)syscall_halt, (uint32_t)syscall_execute, (uint32_t)syscall_read,
