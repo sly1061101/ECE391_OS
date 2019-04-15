@@ -16,6 +16,7 @@
 .globl enable_paging
 .global load_page_directory
 .global paging_init
+.global page_table_program_vidmap
 
 # PDT, align to 4KB boundary
     .align  4096
@@ -44,6 +45,13 @@ page_table_initial:
     .align 4096
 page_directory_program:
     .rept MAX_PROCESS_NUMBER * NUM_PDT_SIZE
+    .long NOT_PRESENT_PAGE
+    .endr
+
+# Page table for user program video memory mapping.
+    .align  4096
+page_table_program_vidmap:
+    .rept 1024
     .long NOT_PRESENT_PAGE
     .endr
 

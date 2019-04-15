@@ -416,7 +416,41 @@ int32_t syscall_vidmap (uint8_t** screen_start) {
     }
     else
     {
-        *screen_start = (uint8_t*) (VIDEO);
+        const uint32_t PD_entry_idx = 35;
+        const uint32_t PT_entry_idx = 512;
+
+        // Set up page table.
+        page_table_program_vidmap[PT_entry_idx].present = 1;
+        page_table_program_vidmap[PT_entry_idx].read_write = 1;
+        page_table_program_vidmap[PT_entry_idx].user_supervisor = 1;
+        page_table_program_vidmap[PT_entry_idx].write_through = 0;
+        page_table_program_vidmap[PT_entry_idx].cache_disabled = 0;
+        page_table_program_vidmap[PT_entry_idx].accessed = 0;
+        page_table_program_vidmap[PT_entry_idx].dirty = 0;
+        page_table_program_vidmap[PT_entry_idx].pt_attribute_index = 0;
+        page_table_program_vidmap[PT_entry_idx].global_page = 0;
+        page_table_program_vidmap[PT_entry_idx].available = 0;
+        page_table_program_vidmap[PT_entry_idx].page_base_address = VIDEO >> 12;
+
+        // Modify processs page directory.
+        uint32_t pid = get_current_pcb()->pid;
+        page_directory_program[pid][PD_entry_idx].entry_PT.present = 1;
+        page_directory_program[pid][PD_entry_idx].entry_PT.read_write = 1;
+        page_directory_program[pid][PD_entry_idx].entry_PT.user_supervisor = 1; // user privilege
+        page_directory_program[pid][PD_entry_idx].entry_PT.write_through = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.cache_disabled = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.accessed = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.reserved = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.page_size = 0; // 4KB page table
+        page_directory_program[pid][PD_entry_idx].entry_PT.global_page = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.available = 0;
+        page_directory_program[pid][PD_entry_idx].entry_PT.pt_base_address = (uint32_t)page_table_program_vidmap >> 12;
+
+        // TODO: This Page Directory Entry should be cleared when process is halted.
+
+        // Calculate address.
+        *screen_start = PD_entry_idx * 4 * 1024 * 1024 + PT_entry_idx * 4 * 1024;
+
         return  0;
     }
 }
