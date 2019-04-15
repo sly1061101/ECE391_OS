@@ -13,6 +13,9 @@
 #define VID_PAGE_START 0x8000000
 #define VID_PAGE_END 0x8400000
 #define VIDEO 0xB8000
+#define VAL_1024 1024
+#define VAL_4 4
+#define VAL_12 12
 // jump table for various system calls
 uint32_t syscall_jump_table[NUM_SYSCALL] =   {   0,
                                         (uint32_t)syscall_halt, (uint32_t)syscall_execute, (uint32_t)syscall_read,
@@ -430,8 +433,16 @@ int32_t syscall_close(int32_t fd) {
     return 0;
 }
 
-
-// TODO
+/*
+ *   syscall_getargs
+ *   DESCRIPTION: reads command line arguments into
+ *                a user-level buffer
+ *   INPUTS: buf -- user-level buffer
+ *           nbytes -- maximum number of bytes 
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success, -1 on failure
+ *   SIDE EFFECTS: none
+ */
 int32_t syscall_getargs (uint8_t* buf, int32_t nbytes) {
 
     int i;
@@ -445,9 +456,7 @@ int32_t syscall_getargs (uint8_t* buf, int32_t nbytes) {
     pcb_t * curr_pcb = get_current_pcb();
 
     /* should we check number of bytes? if we keep copying or return -1? */
-
-    
-
+ 
     if(strlen(curr_pcb->args_array) <= nbytes){
 
         if(strlen(curr_pcb->args_array)==0){
@@ -466,6 +475,14 @@ int32_t syscall_getargs (uint8_t* buf, int32_t nbytes) {
     return 0;
 }
 
+/*
+ *   syscall_vidmap
+ *   DESCRIPTION: maps thevideo memory into user space
+ *   INPUTS: screen_start -- pointer to screen_start pointer
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 on success, -1 on failure
+ *   SIDE EFFECTS: none
+ */
 
 int32_t syscall_vidmap (uint8_t** screen_start) {
     if(screen_start < (uint8_t **)VID_PAGE_START || screen_start >= (uint8_t **)VID_PAGE_END)
@@ -488,7 +505,7 @@ int32_t syscall_vidmap (uint8_t** screen_start) {
         page_table_program_vidmap[PT_entry_idx].pt_attribute_index = 0;
         page_table_program_vidmap[PT_entry_idx].global_page = 0;
         page_table_program_vidmap[PT_entry_idx].available = 0;
-        page_table_program_vidmap[PT_entry_idx].page_base_address = VIDEO >> 12;
+        page_table_program_vidmap[PT_entry_idx].page_base_address = VIDEO >> VAL_12;
 
         // Modify processs page directory.
         uint32_t pid = get_current_pcb()->pid;
@@ -502,12 +519,10 @@ int32_t syscall_vidmap (uint8_t** screen_start) {
         page_directory_program[pid][PD_entry_idx].entry_PT.page_size = 0; // 4KB page table
         page_directory_program[pid][PD_entry_idx].entry_PT.global_page = 0;
         page_directory_program[pid][PD_entry_idx].entry_PT.available = 0;
-        page_directory_program[pid][PD_entry_idx].entry_PT.pt_base_address = (uint32_t)page_table_program_vidmap >> 12;
-
-        // TODO: This Page Directory Entry should be cleared when process is halted.
+        page_directory_program[pid][PD_entry_idx].entry_PT.pt_base_address = (uint32_t)page_table_program_vidmap >> VAL_12;
 
         // Calculate address.
-        *screen_start = PD_entry_idx * 4 * 1024 * 1024 + PT_entry_idx * 4 * 1024;
+        *screen_start = PD_entry_idx * VAL_4 * VAL_1024 * VAL_1024 + PT_entry_idx * VAL_4 * VAL_1024;
 
         return  0;
     }
