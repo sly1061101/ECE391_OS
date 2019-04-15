@@ -351,19 +351,19 @@ int32_t syscall_open(const uint8_t* filename) {
 
         case RTC_TYPE:
         curr_pcb -> file_array[i].fops = &rtc_ops;
-        curr_pcb -> file_array[i].inode = 0;
+        curr_pcb -> file_array[i].inode = fileopen.inode_idx;
         curr_pcb -> file_array[i].fops->open_func(filename);
         return i;
 
         case DIR_TYPE:
         curr_pcb -> file_array[i].fops = &dir_ops;
-        curr_pcb -> file_array[i].inode = 0;
+        curr_pcb -> file_array[i].inode = fileopen.inode_idx;
         curr_pcb -> file_array[i].fops->open_func(filename);
         return i;
 
         case FILE_TYPE:
         curr_pcb -> file_array[i].fops = &file_ops;
-        curr_pcb -> file_array[i].inode = 0;
+        curr_pcb -> file_array[i].inode = fileopen.inode_idx;
         curr_pcb -> file_array[i].fops->open_func(filename);
         return i;
 
