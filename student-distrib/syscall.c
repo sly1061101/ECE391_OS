@@ -52,7 +52,8 @@ int32_t halt_current_process(uint32_t status) {
     for(i=VAL_2;i<MAX_FD_SIZE;i++){
         if(pcb -> file_array[i].flag != 0){
             pcb -> file_array[i].fops->close_func(i);
-            pcb -> file_array[i].flag =0;
+            pcb -> file_array[i].flag = 0;
+            pcb -> file_array[i].file_position = 0;
         }
     }
 
