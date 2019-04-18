@@ -16,6 +16,8 @@
 #define VAL_1024 1024
 #define VAL_4 4
 #define VAL_12 12
+#define PD_ENTRY_IDX 35
+#define PT_ENTRY_IDX 512
 // jump table for various system calls
 uint32_t syscall_jump_table[NUM_SYSCALL] =   {   0,
                                         (uint32_t)syscall_halt, (uint32_t)syscall_execute, (uint32_t)syscall_read,
@@ -491,38 +493,35 @@ int32_t syscall_vidmap (uint8_t** screen_start) {
     }
     else
     {
-        const uint32_t PD_entry_idx = 35;
-        const uint32_t PT_entry_idx = 512;
-
         // Set up page table.
-        page_table_program_vidmap[PT_entry_idx].present = 1;
-        page_table_program_vidmap[PT_entry_idx].read_write = 1;
-        page_table_program_vidmap[PT_entry_idx].user_supervisor = 1;
-        page_table_program_vidmap[PT_entry_idx].write_through = 0;
-        page_table_program_vidmap[PT_entry_idx].cache_disabled = 0;
-        page_table_program_vidmap[PT_entry_idx].accessed = 0;
-        page_table_program_vidmap[PT_entry_idx].dirty = 0;
-        page_table_program_vidmap[PT_entry_idx].pt_attribute_index = 0;
-        page_table_program_vidmap[PT_entry_idx].global_page = 0;
-        page_table_program_vidmap[PT_entry_idx].available = 0;
-        page_table_program_vidmap[PT_entry_idx].page_base_address = VIDEO >> VAL_12;
+        page_table_program_vidmap[PT_ENTRY_IDX].present = 1;
+        page_table_program_vidmap[PT_ENTRY_IDX].read_write = 1;
+        page_table_program_vidmap[PT_ENTRY_IDX].user_supervisor = 1;
+        page_table_program_vidmap[PT_ENTRY_IDX].write_through = 0;
+        page_table_program_vidmap[PT_ENTRY_IDX].cache_disabled = 0;
+        page_table_program_vidmap[PT_ENTRY_IDX].accessed = 0;
+        page_table_program_vidmap[PT_ENTRY_IDX].dirty = 0;
+        page_table_program_vidmap[PT_ENTRY_IDX].pt_attribute_index = 0;
+        page_table_program_vidmap[PT_ENTRY_IDX].global_page = 0;
+        page_table_program_vidmap[PT_ENTRY_IDX].available = 0;
+        page_table_program_vidmap[PT_ENTRY_IDX].page_base_address = VIDEO >> VAL_12;
 
         // Modify processs page directory.
         uint32_t pid = get_current_pcb()->pid;
-        page_directory_program[pid][PD_entry_idx].entry_PT.present = 1;
-        page_directory_program[pid][PD_entry_idx].entry_PT.read_write = 1;
-        page_directory_program[pid][PD_entry_idx].entry_PT.user_supervisor = 1; // user privilege
-        page_directory_program[pid][PD_entry_idx].entry_PT.write_through = 0;
-        page_directory_program[pid][PD_entry_idx].entry_PT.cache_disabled = 0;
-        page_directory_program[pid][PD_entry_idx].entry_PT.accessed = 0;
-        page_directory_program[pid][PD_entry_idx].entry_PT.reserved = 0;
-        page_directory_program[pid][PD_entry_idx].entry_PT.page_size = 0; // 4KB page table
-        page_directory_program[pid][PD_entry_idx].entry_PT.global_page = 0;
-        page_directory_program[pid][PD_entry_idx].entry_PT.available = 0;
-        page_directory_program[pid][PD_entry_idx].entry_PT.pt_base_address = (uint32_t)page_table_program_vidmap >> VAL_12;
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.present = 1;
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.read_write = 1;
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.user_supervisor = 1; // user privilege
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.write_through = 0;
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.cache_disabled = 0;
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.accessed = 0;
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.reserved = 0;
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.page_size = 0; // 4KB page table
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.global_page = 0;
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.available = 0;
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.pt_base_address = (uint32_t)page_table_program_vidmap >> VAL_12;
 
         // Calculate address.
-        *screen_start = (uint8_t*)(PD_entry_idx * VAL_4 * VAL_1024 * VAL_1024 + PT_entry_idx * VAL_4 * VAL_1024);
+        *screen_start = (uint8_t*)(PD_ENTRY_IDX * VAL_4 * VAL_1024 * VAL_1024 + PT_ENTRY_IDX * VAL_4 * VAL_1024);
 
         return  0;
     }

@@ -274,6 +274,7 @@ void keyboard_handler()
       {
         // First clear the screen, then print the content in keyboard_buffer so that the current line is preversed.
         clear();
+        printf("391OS> ");
         terminal_write(1, keyboard_buffer, keyboard_buffer_size);        
         send_eoi(KEYBOARD_IRQ);
         return;
