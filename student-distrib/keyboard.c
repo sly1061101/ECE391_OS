@@ -184,11 +184,15 @@ int altf1_flag = 0;
 int altf2_flag = 0;
 int altf3_flag = 0;
 
-unsigned char keyboard_buffer[KEYBOARD_BUFFER_CAPACITY];
-int keyboard_buffer_size;
+unsigned char keyboard_buffer[TERMINAL_NUM][KEYBOARD_BUFFER_CAPACITY];
+int keyboard_buffer_size[TERMINAL_NUM];
 
-unsigned char terminal_buffer[TERMINAL_BUFFER_CAPACITY];
-int terminal_buffer_size;
+unsigned char terminal_buffer[TERMINAL_NUM][TERMINAL_BUFFER_CAPACITY];
+int terminal_buffer_size[TERMINAL_NUM];
+
+
+int display_terminal_id = 0;
+int running_terminal_id = 0;
 
 /* terminal_buffer_write
 * Write something into the terminal buffer.
@@ -201,14 +205,17 @@ int terminal_buffer_write(unsigned char *buf, int size) {
   if(buf == NULL || size < 0)
     return -1;
 
+  running_terminal_id = get_running_terminal();
+
   // If terminal buffer does not have enough space to hold the input.
-  if(TERMINAL_BUFFER_CAPACITY - terminal_buffer_size < size)
+  if(TERMINAL_BUFFER_CAPACITY - terminal_buffer_size[running_terminal_id] < size)
     return -1;
 
   int i = 0;
   while(i < size) {
-    terminal_buffer[terminal_buffer_size] = buf[i];
-    terminal_buffer_size++;
+    int temp = terminal_buffer_size[running_terminal_id];
+    terminal_buffer[running_terminal_id][temp] = buf[i];
+    terminal_buffer_size[running_terminal_id]++;
     i++;
   }
 
@@ -223,15 +230,17 @@ int terminal_buffer_write(unsigned char *buf, int size) {
 */
 int terminal_buffer_move(int size)
 {
-  if(size > terminal_buffer_size)
+  running_terminal_id = get_running_terminal();
+
+  if(size > terminal_buffer_size[running_terminal_id])
     return -1;
 
   int i;
-  for(i = 0; i < terminal_buffer_size - size; i++)
+  for(i = 0; i < terminal_buffer_size[running_terminal_id] - size; i++)
   {
-    terminal_buffer[i] = terminal_buffer[i + size];
+    terminal_buffer[running_terminal_id][i] = terminal_buffer[running_terminal_id][i + size];
   }
-  terminal_buffer_size -= size; 
+  terminal_buffer_size[running_terminal_id] -= size; 
   return i;
 }
 
@@ -243,8 +252,11 @@ int terminal_buffer_move(int size)
  */
 void keyboard_init()
 {
-  keyboard_buffer_size = 0;
-  terminal_buffer_size = 0;
+  int i;
+  for (i=0 ; i<TERMINAL_NUM; i++){
+  keyboard_buffer_size[i] = 0;
+  terminal_buffer_size[i] = 0;
+  }
   interrupt_handler[KEYBOARD_IR_VEC] = keyboard_handler;
   enable_irq(KEYBOARD_IRQ);
 }
@@ -264,6 +276,8 @@ void keyboard_handler()
 
   status = inb(KEYBOARD_STATUS_PORT);
 
+  display_terminal_id = get_display_terminal();
+
   /* Lowest bit of status check empty */
   if (status & LOW_BIT_OFFSER)
   {
@@ -278,39 +292,40 @@ void keyboard_handler()
         // First clear the screen, then print the content in keyboard_buffer so that the current line is preversed.
         clear();
         printf("391OS> ");
-        terminal_write(1, keyboard_buffer, keyboard_buffer_size);        
+        terminal_write(1, keyboard_buffer[display_terminal_id], keyboard_buffer_size[display_terminal_id]);        
         send_eoi(KEYBOARD_IRQ);
         return;
       }
 
       if(backspace_flag) {
-        if(keyboard_buffer_size > 0) {
+        if(keyboard_buffer_size[display_terminal_id] > 0) {
           backspace_delete();
-          keyboard_buffer_size--;
+          keyboard_buffer_size[display_terminal_id]--;
         }
       }
       
       // print known default scancode
       if(default_flag){
-        if(keyboard_buffer_size < KEYBOARD_BUFFER_CAPACITY) {
+        if(keyboard_buffer_size[display_terminal_id] < KEYBOARD_BUFFER_CAPACITY) {
           if(keycode_processed !=0 && keycode_processed != '\t'){
             printf("%c", keycode_processed);
-            keyboard_buffer[keyboard_buffer_size] = keycode_processed;
-            keyboard_buffer_size++;
+            int temp = keyboard_buffer_size[display_terminal_id];
+            keyboard_buffer[display_terminal_id][temp] = keycode_processed;
+            keyboard_buffer_size[display_terminal_id]++;
 
             // terminal buffer write when ENTER is pressed
             if(keycode_processed == '\n') {
-              terminal_buffer_write(keyboard_buffer, keyboard_buffer_size);
-              keyboard_buffer_size = 0;
+              terminal_buffer_write(keyboard_buffer[display_terminal_id], keyboard_buffer_size[display_terminal_id]);
+              keyboard_buffer_size[display_terminal_id] = 0;
             }
           }
         }
         // Special case when already has 128 characters and enter is pressed.
-        else if(keyboard_buffer_size == KEYBOARD_BUFFER_CAPACITY 
+        else if(keyboard_buffer_size[display_terminal_id] == KEYBOARD_BUFFER_CAPACITY 
                   && keycode_processed == '\n') {
           printf("%c", keycode_processed);
-          terminal_buffer_write(keyboard_buffer, keyboard_buffer_size);
-          keyboard_buffer_size = 0;
+          terminal_buffer_write(keyboard_buffer[display_terminal_id], keyboard_buffer_size[display_terminal_id]);
+          keyboard_buffer_size[display_terminal_id] = 0;
         }
       }
 
@@ -460,14 +475,15 @@ int terminal_read(int32_t fd, unsigned char* buf, int size)
   if(size < 0)
     return -1;
 
+  running_terminal_id = get_running_terminal();
   // Wait until terminal buffer is not empty.
-  while(terminal_buffer_size == 0);
+  while(terminal_buffer_size[running_terminal_id] == 0);
 
   int i;
-  for(i = 0; i < size && i < terminal_buffer_size; i++)
+  for(i = 0; i < size && i < terminal_buffer_size[running_terminal_id]; i++)
   {
-    buf[i] = terminal_buffer[i];
-    if(terminal_buffer[i] == '\n')
+    buf[i] = terminal_buffer[running_terminal_id][i];
+    if(terminal_buffer[running_terminal_id][i] == '\n')
     {
       i++;
       break;

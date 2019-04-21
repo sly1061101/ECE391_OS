@@ -17,7 +17,25 @@ static int screen_x_array[TERMINAL_NUM] = {0,0,0};
 static int screen_y_array[TERMINAL_NUM] = {0,0,0};
 static char* video_mem = (char *)VIDEO;
 static int display_terminal=0;
+static int running_terminal=0;
 
+/* get_display_terminal;
+ * Inputs: void
+ * Return Value: current display terminal number
+ * Function: get current display terminal number */
+int get_display_terminal()
+{
+    return display_terminal;
+}
+
+/* get_running_terminal;
+ * Inputs: void
+ * Return Value: current running terminal number
+ * Function: get current running terminal number */
+int get_running_terminal()
+{
+    return running_terminal;
+}
 /* void clear(void);
  * Inputs: void
  * Return Value: none
