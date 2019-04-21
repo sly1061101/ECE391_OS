@@ -27,6 +27,9 @@
 #define ALT 0x38
 #define EMPTY 0x00
 #define ESC 0x01
+#define F1			0x3B
+#define F2 	 		0x3C
+#define F3			0x3D
 
 #define PRESSED 1
 #define RELEASED 0

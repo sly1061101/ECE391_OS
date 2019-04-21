@@ -7,12 +7,16 @@
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
+#define TERMINAL_NUM 3
 
 static void scroll();
 
 static int screen_x;
 static int screen_y;
+static int screen_x_array[TERMINAL_NUM] = {0,0,0};
+static int screen_y_array[TERMINAL_NUM] = {0,0,0};
 static char* video_mem = (char *)VIDEO;
+static int display_terminal=0;
 
 /* void clear(void);
  * Inputs: void
@@ -20,13 +24,14 @@ static char* video_mem = (char *)VIDEO;
  * Function: Clears video memory */
 void clear(void) {
     int32_t i;
+
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
-    screen_x = 0;
-    screen_y = 0;
-    update_cursor(screen_x, screen_y);
+    screen_x_array[display_terminal]=0;
+    screen_y_array[display_terminal]=0;
+    update_cursor(screen_x_array[display_terminal], screen_y_array[display_terminal]);
 }
 
 // Constants that actually make no sense but just to
@@ -87,8 +92,8 @@ static void scroll()
     }
     
     // set screen position to beginning of last row
-    screen_x = 0;
-    screen_y = NUM_ROWS - 1;
+    screen_x_array[display_terminal] = 0;
+    screen_y_array[display_terminal] = NUM_ROWS - 1;
 }
 
 /*
@@ -99,25 +104,25 @@ static void scroll()
 */
 void backspace_delete() {
     // If already at beginning of first line, do nothing.
-    if(screen_x == 0 && screen_y == 0) {
+    if(screen_x_array[display_terminal] == 0 && screen_y_array[display_terminal] == 0) {
         return;
     }
     // If at beginning of not first line, go back to previous line.
-    else if (screen_x == 0 && screen_y > 0) {
-        screen_x = NUM_COLS - 1;     
-        screen_y--;
+    else if (screen_x_array[display_terminal] == 0 && screen_y_array[display_terminal] > 0) {
+        screen_x_array[display_terminal] = NUM_COLS - 1;     
+        screen_y_array[display_terminal]--;
     }
     // Otherwise just go backware.
     else {
-        screen_x--;         
+        screen_x_array[display_terminal]--;         
     }                    
 
     // change registers 
-    *(uint8_t *)(video_mem+ ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
-    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;  
+    *(uint8_t *)(video_mem+ ((NUM_COLS * screen_y_array[display_terminal] + screen_x_array[display_terminal]) << 1)) = ' ';
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y_array[display_terminal] + screen_x_array[display_terminal]) << 1) + 1) = ATTRIB;  
     
     //update the cursor
-    update_cursor(screen_x, screen_y);                                            
+    update_cursor(screen_x_array[display_terminal], screen_y_array[display_terminal]);                                            
 }
 
 /* Standard printf().
@@ -265,20 +270,20 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
-        screen_x = 0;
-        screen_y++;
+        screen_x_array[display_terminal] = 0;
+        screen_y_array[display_terminal]++;
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        if(screen_x == NUM_COLS) {
-            screen_x = 0;
-            screen_y++;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y_array[display_terminal] + screen_x_array[display_terminal]) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y_array[display_terminal] + screen_x_array[display_terminal]) << 1) + 1) = ATTRIB;
+        screen_x_array[display_terminal]++;
+        if(screen_x_array[display_terminal] == NUM_COLS) {
+            screen_x_array[display_terminal] = 0;
+            screen_y_array[display_terminal]++;
         }
     }
-    if(screen_y == NUM_ROWS)
+    if(screen_y_array[display_terminal] == NUM_ROWS)
         scroll();
-    update_cursor(screen_x, screen_y);
+    update_cursor(screen_x_array[display_terminal], screen_y_array[display_terminal]);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

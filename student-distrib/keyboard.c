@@ -180,6 +180,9 @@ int ctrl_flag = 0;
 int default_flag = 0;
 int backspace_flag = 0;
 int esc_flag = 0;
+int altf1_flag = 0;
+int altf2_flag = 0;
+int altf3_flag = 0;
 
 unsigned char keyboard_buffer[KEYBOARD_BUFFER_CAPACITY];
 int keyboard_buffer_size;
@@ -388,7 +391,20 @@ char char_converter(unsigned char input)
       default_flag = PRESSED;
       break;
   }
-
+  if(alt_flag){
+	  if(input == F1){
+		  altf1_flag = PRESSED;
+      printf("altf1 pressed!");
+	  }
+	  else if(input == F2){
+		  altf2_flag = PRESSED;
+      printf("altf2 pressed!");
+	  }
+	  else if(input == F3){
+		  altf3_flag = PRESSED;
+      printf("altf3 pressed!");
+	  }
+  }
   // CAPSLOCK and SHIFT corner case
   if (caps_flag)
   {
