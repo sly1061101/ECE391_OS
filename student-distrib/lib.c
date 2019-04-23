@@ -36,6 +36,31 @@ int get_running_terminal()
 {
     return running_terminal;
 }
+
+
+//check and see whether the active terminal is displaying. change the active terminal id 
+void set_running_terminal(int terminal_id)
+{
+    if(terminal_id == display_terminal)
+        //set_active_terminal_paging(terminal_id);
+    running_terminal = terminal_id;
+}
+
+/* void set_disiplay_terminal(int terminal_id);
+ * Inputs: terminal_id 
+ * Return Value: void
+ *  Function: switching displaying terminal */
+void set_disiplay_terminal(int terminal_id)
+{
+    memcpy(terminal_mem[display_terminal], video_mem, KB_4);
+    memcpy(video_mem, terminal_mem[terminal_id], KB_4);
+    display_terminal = terminal_id;
+    set_running_terminal(active_terminal);
+    update_cursor(screen_x_array[terminal_id], screen_y_array[terminal_id]);
+}
+
+
+
 /* void clear(void);
  * Inputs: void
  * Return Value: none
