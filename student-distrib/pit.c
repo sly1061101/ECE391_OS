@@ -2,6 +2,7 @@
 #include "i8259.h"
 #include "process.h"
 #include "x86_desc.h"
+#include "idt.h"
 
 #define TOTAL_CLOCK_FREQ 1193182
 #define PIT_COMMAND_REGISTER 0x43
@@ -35,8 +36,9 @@ void pit_init(int32_t freq){
     /* Set high byte of divisor */  
     outb(divisor >> HSB_SHIFT, CHANNEL_0);  
 
-    enable_irq(PIT_IRQ);   
+    interrupt_handler[PIT_VEC_NUM] = (uint32_t)pit_handler;
 
+    enable_irq(PIT_IRQ);   
 }
 
 /*
@@ -52,16 +54,16 @@ void pit_handler(){
 	cli();
 	send_eoi(PIT_IRQ);
 
-	// get next active terminal
-	int current_terminal = get_running_terminal();
-	int next_terminal = (current_terminal+1)%3;
+	// // get next active terminal
+	// int current_terminal = get_running_terminal();
+	// int next_terminal = (current_terminal+1)%3;
 
-	// get current pcb
-    pcb_t * curr_pcb = get_current_pcb(); 
+	// // get current pcb
+    // pcb_t * curr_pcb = get_current_pcb(); 
 
-    // Save the current esp and ebp 
-    uint32_t esp;
-    uint32_t ebp;
+    // // Save the current esp and ebp 
+    // uint32_t esp;
+    // uint32_t ebp;
 
     // asm volatile("movl %%esp, %0" \
     //              :"=r"(esp)   \

@@ -16,6 +16,7 @@
 #include "process.h"
 #include "syscall.h"
 #include "terminal.h"
+#include "pit.h"
 
 #define RUN_TESTS
 
@@ -177,6 +178,8 @@ void entry(unsigned long magic, unsigned long addr) {
     paging_init();
 
     process_init();
+
+    pit_init(50);
 
 #ifdef RUN_TESTS
     /* Run tests */
