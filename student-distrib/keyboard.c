@@ -30,7 +30,7 @@ void keyboard_init()
   for (i = 0 ; i < TERMINAL_NUM; i++)
     keyboard_buffer_size[i] = 0;
 
-  interrupt_handler[KEYBOARD_IR_VEC] = keyboard_handler;
+  interrupt_handler[KEYBOARD_VEC_NUM] = keyboard_handler;
   enable_irq(KEYBOARD_IRQ);
 }
 

@@ -3,6 +3,10 @@
 
 #include "x86_desc.h"
 
+#define PIT_VEC_NUM 0x20
+#define KEYBOARD_VEC_NUM 0x21
+#define RTC_VEC_NUM 0x28
+
 #ifndef ASM
 
 // Jump table for all interrupt hanlders. Last one is default handler.

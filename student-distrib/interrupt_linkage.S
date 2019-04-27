@@ -42,6 +42,7 @@ SYSCALL_NUM_MAX:
 .global ir_linkage_17
 .global ir_linkage_18
 .global ir_linkage_19
+.global ir_linkage_32
 .global ir_linkage_33
 .global ir_linkage_40
 .global syscall_linkage
@@ -147,6 +148,10 @@ ir_linkage_18:
 
 ir_linkage_19:
     pushl $19
+    jmp common_interrupt
+
+ir_linkage_32:
+    pushl $32
     jmp common_interrupt
 
 ir_linkage_33:

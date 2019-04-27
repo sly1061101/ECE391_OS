@@ -3,7 +3,8 @@
 #include "interrupt_linkage.h"
 #include "syscall.h"
 
-#define SYS_CALL 0x80
+#define SYSCALL_VEC_NUM 0x80
+
 #define HALT_STATUS_ON_EXCEPTION 256
 
 // Jump table for all interrupt hanlders. Last one is default handler.
@@ -70,7 +71,7 @@ void idt_init(){
 
         idt[i].dpl = 0; // hardware interrupt handlers and exception handlers should have DPL=0
 
-        if(i==SYS_CALL){
+        if(i == SYSCALL_VEC_NUM){
 
           idt[i].dpl= 3; // system call handler has its DPL set to 3
 
@@ -140,7 +141,8 @@ void idt_init(){
     SET_IDT_ENTRY(idt[17],ir_linkage_17);
     SET_IDT_ENTRY(idt[18],ir_linkage_18);
     SET_IDT_ENTRY(idt[19],ir_linkage_19);
-    SET_IDT_ENTRY(idt[33],ir_linkage_33);
-    SET_IDT_ENTRY(idt[40],ir_linkage_40);
-    SET_IDT_ENTRY(idt[SYS_CALL],syscall_linkage);
+    SET_IDT_ENTRY(idt[PIT_VEC_NUM],ir_linkage_32);
+    SET_IDT_ENTRY(idt[KEYBOARD_VEC_NUM],ir_linkage_33);
+    SET_IDT_ENTRY(idt[RTC_VEC_NUM],ir_linkage_40);
+    SET_IDT_ENTRY(idt[SYSCALL_VEC_NUM],syscall_linkage);
 }
