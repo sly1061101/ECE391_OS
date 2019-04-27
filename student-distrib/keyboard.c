@@ -180,9 +180,6 @@ int ctrl_flag = 0;
 int default_flag = 0;
 int backspace_flag = 0;
 int esc_flag = 0;
-int altf1_flag = 0;
-int altf2_flag = 0;
-int altf3_flag = 0;
 
 unsigned char keyboard_buffer[TERMINAL_NUM][KEYBOARD_BUFFER_CAPACITY];
 int keyboard_buffer_size[TERMINAL_NUM];
@@ -244,6 +241,9 @@ int terminal_buffer_move(int size)
   return i;
 }
 
+int32_t terminal_switch(uint32_t terminal_id) {
+}
+
 /* keyboard_init
  * Initialized the keyboard
  * Inputs: None
@@ -283,6 +283,29 @@ void keyboard_handler()
   {
     keycode = inb(KEYBOARD_DATA_PORT);
     keycode_processed = char_converter((unsigned char)keycode);
+
+    if(alt_flag && (keycode == F1 || keycode == F2 || keycode == F3)){
+      switch (keycode)
+      {
+        case F1:
+          terminal_switch(0);
+          break;
+
+        case F2:
+          terminal_switch(1);
+          break;
+
+        case F3:
+          terminal_switch(2);
+          break;
+        
+        default:
+          printf("Should never reach here!\n");
+          break;
+      }
+      send_eoi(KEYBOARD_IRQ);
+      return;
+    }
 
     if (keycode >= 0)
     {
@@ -406,20 +429,7 @@ char char_converter(unsigned char input)
       default_flag = PRESSED;
       break;
   }
-  if(alt_flag){
-	  if(input == F1){
-		  altf1_flag = PRESSED;
-      printf("altf1 pressed!");
-	  }
-	  else if(input == F2){
-		  altf2_flag = PRESSED;
-      printf("altf2 pressed!");
-	  }
-	  else if(input == F3){
-		  altf3_flag = PRESSED;
-      printf("altf3 pressed!");
-	  }
-  }
+
   // CAPSLOCK and SHIFT corner case
   if (caps_flag)
   {
