@@ -7,59 +7,12 @@
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
-#define TERMINAL_NUM 3
 
 static void scroll();
 
 static int screen_x;
 static int screen_y;
-static int screen_x_array[TERMINAL_NUM] = {0,0,0};
-static int screen_y_array[TERMINAL_NUM] = {0,0,0};
 static char* video_mem = (char *)VIDEO;
-static int display_terminal=0;
-static int running_terminal=0;
-
-/* get_display_terminal;
- * Inputs: void
- * Return Value: current display terminal number
- * Function: get current display terminal number */
-int get_display_terminal()
-{
-    return display_terminal;
-}
-
-/* get_running_terminal;
- * Inputs: void
- * Return Value: current running terminal number
- * Function: get current running terminal number */
-int get_running_terminal()
-{
-    return running_terminal;
-}
-
-
-//check and see whether the active terminal is displaying. change the active terminal id 
-void set_running_terminal(int terminal_id)
-{
-    if(terminal_id == display_terminal)
-        //set_active_terminal_paging(terminal_id);
-    running_terminal = terminal_id;
-}
-
-/* void set_disiplay_terminal(int terminal_id);
- * Inputs: terminal_id 
- * Return Value: void
- *  Function: switching displaying terminal */
-void set_disiplay_terminal(int terminal_id)
-{
-    memcpy(terminal_mem[display_terminal], video_mem, KB_4);
-    memcpy(video_mem, terminal_mem[terminal_id], KB_4);
-    display_terminal = terminal_id;
-    set_running_terminal(active_terminal);
-    update_cursor(screen_x_array[terminal_id], screen_y_array[terminal_id]);
-}
-
-
 
 /* void clear(void);
  * Inputs: void
@@ -67,14 +20,13 @@ void set_disiplay_terminal(int terminal_id)
  * Function: Clears video memory */
 void clear(void) {
     int32_t i;
-
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
-    screen_x_array[display_terminal]=0;
-    screen_y_array[display_terminal]=0;
-    update_cursor(screen_x_array[display_terminal], screen_y_array[display_terminal]);
+    screen_x = 0;
+    screen_y = 0;
+    update_cursor(screen_x, screen_y);
 }
 
 // Constants that actually make no sense but just to
@@ -135,8 +87,8 @@ static void scroll()
     }
     
     // set screen position to beginning of last row
-    screen_x_array[display_terminal] = 0;
-    screen_y_array[display_terminal] = NUM_ROWS - 1;
+    screen_x = 0;
+    screen_y = NUM_ROWS - 1;
 }
 
 /*
@@ -147,25 +99,25 @@ static void scroll()
 */
 void backspace_delete() {
     // If already at beginning of first line, do nothing.
-    if(screen_x_array[display_terminal] == 0 && screen_y_array[display_terminal] == 0) {
+    if(screen_x == 0 && screen_y == 0) {
         return;
     }
     // If at beginning of not first line, go back to previous line.
-    else if (screen_x_array[display_terminal] == 0 && screen_y_array[display_terminal] > 0) {
-        screen_x_array[display_terminal] = NUM_COLS - 1;     
-        screen_y_array[display_terminal]--;
+    else if (screen_x == 0 && screen_y > 0) {
+        screen_x = NUM_COLS - 1;     
+        screen_y--;
     }
     // Otherwise just go backware.
     else {
-        screen_x_array[display_terminal]--;         
+        screen_x--;         
     }                    
 
     // change registers 
-    *(uint8_t *)(video_mem+ ((NUM_COLS * screen_y_array[display_terminal] + screen_x_array[display_terminal]) << 1)) = ' ';
-    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y_array[display_terminal] + screen_x_array[display_terminal]) << 1) + 1) = ATTRIB;  
+    *(uint8_t *)(video_mem+ ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;  
     
     //update the cursor
-    update_cursor(screen_x_array[display_terminal], screen_y_array[display_terminal]);                                            
+    update_cursor(screen_x, screen_y);                                            
 }
 
 /* Standard printf().
@@ -313,20 +265,20 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
-        screen_x_array[display_terminal] = 0;
-        screen_y_array[display_terminal]++;
+        screen_x = 0;
+        screen_y++;
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y_array[display_terminal] + screen_x_array[display_terminal]) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y_array[display_terminal] + screen_x_array[display_terminal]) << 1) + 1) = ATTRIB;
-        screen_x_array[display_terminal]++;
-        if(screen_x_array[display_terminal] == NUM_COLS) {
-            screen_x_array[display_terminal] = 0;
-            screen_y_array[display_terminal]++;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        screen_x++;
+        if(screen_x == NUM_COLS) {
+            screen_x = 0;
+            screen_y++;
         }
     }
-    if(screen_y_array[display_terminal] == NUM_ROWS)
+    if(screen_y == NUM_ROWS)
         scroll();
-    update_cursor(screen_x_array[display_terminal], screen_y_array[display_terminal]);
+    update_cursor(screen_x, screen_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

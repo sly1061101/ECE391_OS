@@ -24,10 +24,6 @@ int32_t strncmp(const int8_t* s1, const int8_t* s2, uint32_t n);
 int8_t* strcpy(int8_t* dest, const int8_t*src);
 int8_t* strncpy(int8_t* dest, const int8_t*src, uint32_t n);
 
-/* Self-defined functions */
-int get_running_terminal();
-int get_display_terminal();
-
 /* Update Curosr Position */
 void update_cursor(int x, int y);
 extern void backspace_delete();
