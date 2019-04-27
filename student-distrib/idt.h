@@ -4,6 +4,8 @@
 #include "x86_desc.h"
 
 #define PIT_VEC_NUM 0x20
+#define KEYBOARD_VEC_NUM 0x21
+#define RTC_VEC_NUM 0x28
 
 #ifndef ASM
 

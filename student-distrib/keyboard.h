@@ -5,7 +5,6 @@
 #include "tests.h"
 #include "lib.h"
 
-#define KEYBOARD_IR_VEC 0x21
 #define KEYBOARD_IRQ 0x01
 #define KEYBOARD_DATA_PORT 0x60
 #define KEYBOARD_STATUS_PORT 0x64

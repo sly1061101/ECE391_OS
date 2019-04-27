@@ -14,7 +14,6 @@
 #define ORED 0x40
 #define RATE_OFFSET 0xF0
 #define IRQ8 8
-#define RTC_IDT_NUM 40
 #define HIGH_FOUR_BITS_MASK 0xF0
 
 volatile int is_interrupt;
@@ -53,7 +52,7 @@ void rtc_init(void)
     outb((prev & RATE_OFFSET) | freq, RTC_REG_DATA); //write only our rate to A. Note, rate is the bottom 4 bits.
 
     // Register handler.
-    interrupt_handler[RTC_IDT_NUM] = rtc_handler;
+    interrupt_handler[RTC_VEC_NUM] = rtc_handler;
 
     enable_irq(IRQ8);
     sti();
