@@ -15,6 +15,7 @@
 #include "file_system.h"
 #include "process.h"
 #include "syscall.h"
+#include "terminal.h"
 
 #define RUN_TESTS
 
@@ -152,6 +153,8 @@ void entry(unsigned long magic, unsigned long addr) {
     rtc_init();
 
     keyboard_init();
+
+    terminal_init();
 
     // Extract file system image base address from multiboot information
     //  and initialize file system driver.

@@ -6,6 +6,7 @@
 #include "syscall_helper.h"
 #include "process.h"
 #include "rtc.h"
+#include "terminal.h"
 
 #define VAL_2 2
 #define VAL_22 22

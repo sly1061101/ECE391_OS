@@ -13,8 +13,6 @@
 
 #define MAP_SIZE 128
 #define KEYBOARD_BUFFER_CAPACITY 128
-#define TERMINAL_BUFFER_CAPACITY (KEYBOARD_BUFFER_CAPACITY * 10)
-#define TERMINAL_NUM 3
 
 #define LEFT_SHIFT 0x2A
 #define LEFT_SHIFT_R 0xAA
@@ -58,17 +56,5 @@ extern void keyboard_handler();
 
 /* Helper fcuntion to handle special input cases */
 extern char char_converter(unsigned char input);
-
-/* Initialize terminal stuff(or nothing), return 0 */
-extern int terminal_open();
-
-/* Clear any terminal specific variables(or do nothing), return 0 */
-extern int terminal_close(int32_t fd);
-
-/* Read FROM the keyboard buffer into buf, return number of bytes read */
-extern int terminal_read(int32_t fd, unsigned char* buf, int size);
-
-/* Write TO the screen from buff, return number of bytes written or -1 */
-extern int terminal_write(int32_t fd, unsigned char* buf, int size);
 
 #endif /* _KEYBOARD_H */
