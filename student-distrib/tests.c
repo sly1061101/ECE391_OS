@@ -5,6 +5,7 @@
 #include "file_system.h"
 #include "keyboard.h"
 #include "rtc.h"
+#include "terminal.h"
 
 #define PASS 1
 #define FAIL 0

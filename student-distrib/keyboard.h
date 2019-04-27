@@ -11,9 +11,7 @@
 #define KEYBOARD_STATUS_PORT 0x64
 #define LOW_BIT_OFFSER 0x01
 
-#define MAP_SIZE 128
 #define KEYBOARD_BUFFER_CAPACITY 128
-#define TERMINAL_BUFFER_CAPACITY (KEYBOARD_BUFFER_CAPACITY * 10)
 
 #define LEFT_SHIFT 0x2A
 #define LEFT_SHIFT_R 0xAA
@@ -27,24 +25,15 @@
 #define ALT 0x38
 #define EMPTY 0x00
 #define ESC 0x01
+#define F1			0x3B
+#define F2 	 		0x3C
+#define F3			0x3D
 
 #define PRESSED 1
 #define RELEASED 0
 
 /* The scancode for key release (`break') is obtained from it by setting the high order bit */
 #define HIGH_ORDER_BIT_MASK 0x80
-
-/* US Keyboard Layout for general cases*/
-extern unsigned char keyboard_map[MAP_SIZE];
-
-/* US Keyboard Layout for CAPSLOCK cases*/
-extern unsigned char keyboard_map_caps[MAP_SIZE];
-
-/* US Keyboard Layout for SHIFT lower cases*/
-extern unsigned char keyboard_map_shift_lower[MAP_SIZE];
-
-/* US Keyboard Layout for SHIFT upper cases*/
-extern unsigned char keyboard_map_shift_upper[MAP_SIZE];
 
 /* Initialize the keyboard */
 extern void keyboard_init();
@@ -54,17 +43,5 @@ extern void keyboard_handler();
 
 /* Helper fcuntion to handle special input cases */
 extern char char_converter(unsigned char input);
-
-/* Initialize terminal stuff(or nothing), return 0 */
-extern int terminal_open();
-
-/* Clear any terminal specific variables(or do nothing), return 0 */
-extern int terminal_close(int32_t fd);
-
-/* Read FROM the keyboard buffer into buf, return number of bytes read */
-extern int terminal_read(int32_t fd, unsigned char* buf, int size);
-
-/* Write TO the screen from buff, return number of bytes written or -1 */
-extern int terminal_write(int32_t fd, unsigned char* buf, int size);
 
 #endif /* _KEYBOARD_H */
