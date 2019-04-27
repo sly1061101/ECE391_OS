@@ -14,6 +14,29 @@ static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
+// Load content from buf into video memory.
+void load_video_memory(const char *buf) {
+    memcpy(video_mem, buf, 4 * 1024);
+}
+
+// Backup the content in video memory into buf.
+void backup_video_memory(char *buf) {
+    memcpy(buf, video_mem, 4 * 1024);
+}
+
+// Load screen position.
+void load_screen_position(int x, int y) {
+    screen_x = x;
+    screen_y = y;
+    update_cursor(screen_x, screen_y);
+}
+
+// Backup screen position.
+void backup_screen_position(int *x, int *y) {
+    *x = screen_x;
+    *y = screen_y;
+}
+
 /* void clear(void);
  * Inputs: void
  * Return Value: none

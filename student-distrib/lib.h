@@ -34,6 +34,15 @@ int32_t safe_strncpy(int8_t* dest, const int8_t* src, int32_t n);
 
 extern void test_interrupts(void);
 
+// Load content from buf into video memory.
+extern void load_video_memory(const char *buf);
+// Backup the content in video memory into buf.
+extern void backup_video_memory(char *buf);
+// Load screen position.
+extern void load_screen_position(int x, int y);
+// Backup screen position.
+extern void backup_screen_position(int *x, int *y);
+
 /* Port read functions */
 /* Inb reads a byte and returns its value as a zero-extended 32-bit
  * unsigned int */
