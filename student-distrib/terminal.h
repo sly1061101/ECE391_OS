@@ -7,6 +7,8 @@
 #define TERMINAL_BUFFER_CAPACITY (KEYBOARD_BUFFER_CAPACITY * 10)
 #define TERMINAL_NUM 3
 
+#ifndef ASM
+
 extern int get_display_terminal();
 
 extern int terminal_buffer_write(unsigned char *buf, int size);
@@ -22,5 +24,7 @@ extern int terminal_read(int32_t fd, unsigned char* buf, int size);
 
 /* Write TO the screen from buff, return number of bytes written or -1 */
 extern int terminal_write(int32_t fd, unsigned char* buf, int size);
+
+#endif // ASM
 
 #endif /* _TERMINAL_H_ */
