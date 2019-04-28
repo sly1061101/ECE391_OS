@@ -3,6 +3,7 @@
 
 #define ASM     1
 #include "paging.h"
+#include "terminal.h"
 
 
 #define NOT_PRESENT_PAGE    0x00000002
@@ -52,7 +53,7 @@ page_directory_program:
 # Page tables for terminals to map video memory.
 .align  4096
 page_table_terminal_video_memory:
-    .rept MAX_PROCESS_NUMBER * NUM_PT_SIZE
+    .rept TERMINAL_NUM * NUM_PT_SIZE
     .long NOT_PRESENT_PAGE
     .endr
 
