@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "process.h"
+#include "terminal.h"
 
 #define NUM_PDT_SIZE 1024
 #define NUM_PT_SIZE 1024
@@ -66,9 +67,12 @@ typedef struct __attribute__((packed)) pt_entry {
 extern pdt_entry_t page_directory_initial[NUM_PDT_SIZE];
 extern pt_entry_t page_table_initial[NUM_PT_SIZE];
 
-// Page directory for user programs, will be set up in execute syscall.
+// Page directories for user programs, will be set up in execute syscall.
 extern pdt_entry_t page_directory_program[MAX_PROCESS_NUMBER][NUM_PDT_SIZE];
-// Page table for user program video memory mapping.
+// Page tables for terminals to map video memory.
+extern pt_entry_t page_table_terminal_video_memory[TERMINAL_NUM][NUM_PT_SIZE];
+
+// Page table for user program to map video memory into user-space, i.e. for the use of syscall_vidmap().
 extern pt_entry_t page_table_program_vidmap[NUM_PT_SIZE];
 
 // Load a page directory into CR3 register.
