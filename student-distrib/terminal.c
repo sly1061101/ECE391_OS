@@ -15,16 +15,17 @@ int get_display_terminal() {
     return display_terminal;
 }
 
-int32_t terminal_active[TERMINAL_NUM];
+// 0 inactive, 1 active.
+int32_t terminal_state[TERMINAL_NUM];
 
-void set_terminal_active(uint32_t terminal_id, int32_t pid) {
-  terminal_active[terminal_id] = pid;
+void set_terminal_state(uint32_t terminal_id, uint32_t state) {
+  terminal_state[terminal_id] = state;
 }
 
 extern int32_t get_next_inactive_terminal() {
   int32_t i;
   for(i = 0; i < TERMINAL_NUM; ++i) {
-    if(terminal_active[i] == -1)
+    if(terminal_state[i] == TERMINAL_INACTIVE)
       return i;
   }
   return -1;
@@ -34,7 +35,7 @@ void terminal_init() {
   int i;
   for (i = 0 ; i < TERMINAL_NUM; i++) {
     terminal_buffer_size[i] = 0;
-    terminal_active[i] = -1;
+    terminal_state[i] = TERMINAL_INACTIVE;
     screen_x_backstore[i] = 0;
     screen_y_backstore[i] = 0;
     memset(video_mem_backstore[i], 0, 4 * 1024);

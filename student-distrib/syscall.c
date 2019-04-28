@@ -64,6 +64,7 @@ int32_t halt_current_process(uint32_t status) {
     if(pcb->parent_pcb == NULL) {
         // If the first shell is halted, restart it automatically.
         (void) release_pid(pcb->pid);
+        set_terminal_state(get_current_pcb()->terminal_id, TERMINAL_INACTIVE);
         (void) syscall_execute((uint8_t*)"shell");
     }
 
@@ -179,7 +180,7 @@ int32_t syscall_execute (const uint8_t* command) {
     int32_t next_inactive_terminal = get_next_inactive_terminal();
     if(next_inactive_terminal != -1) {
         pcb->terminal_id = next_inactive_terminal;
-        set_terminal_active(pcb->terminal_id, pid);
+        set_terminal_state(pcb->terminal_id, TERMINAL_ACTIVE);
         // Set up page table for processes running on this terminal.
         page_table_terminal_video_memory[pcb->terminal_id][184].present = 1;
         page_table_terminal_video_memory[pcb->terminal_id][184].read_write = 1;

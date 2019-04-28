@@ -7,6 +7,9 @@
 #define TERMINAL_BUFFER_CAPACITY (KEYBOARD_BUFFER_CAPACITY * 10)
 #define TERMINAL_NUM 3
 
+#define TERMINAL_INACTIVE 0
+#define TERMINAL_ACTIVE 1
+
 #ifndef ASM
 
 extern uint8_t video_mem_backstore[TERMINAL_NUM][4 * 1024];
@@ -15,8 +18,8 @@ extern int screen_y_backstore[TERMINAL_NUM];
 
 extern int get_display_terminal();
 
-// Mark terminal to be used.
-extern void set_terminal_active(uint32_t terminal_id, int32_t pid);
+// Set terminal state, 0 inactive, 1 active.
+extern void set_terminal_state(uint32_t terminal_id, uint32_t state);
 // Get next terminal which still hasn't been used.
 extern int32_t get_next_inactive_terminal();
 
