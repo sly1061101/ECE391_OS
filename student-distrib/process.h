@@ -57,6 +57,9 @@ extern void process_init();
 // helper function to get which kernel stack we are currently
 extern pcb_t* get_current_pcb();
 
+// get the pcb based on pid, undefined behavior if process not exist
+extern pcb_t* get_pcb(uint32_t pid);
+
 // Request an available pid. Return pid on success, or -1 if has reached max process count.
 extern int32_t request_pid();
 

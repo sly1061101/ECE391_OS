@@ -40,6 +40,11 @@ pcb_t* get_current_pcb() {
     return pcb;
 }
 
+pcb_t* get_pcb(uint32_t pid) {
+    // PCB is located at the top of kernel stack of each process. I.e. at 8MB - 8KB - pid * 8KB
+    return (pcb_t*)(8 * 1024 * 1024 - 8 * 1024 - pid * 8 * 1024);
+}
+
 /*
  *   request_pid
  *   DESCRIPTION: return the next unused pid
