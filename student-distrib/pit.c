@@ -63,9 +63,16 @@ void pit_handler(){
 	// get current pcb
     pcb_t * curr_pcb = get_current_pcb();
 
-    // // Save the current esp and ebp 
-    // uint32_t esp;
-    // uint32_t ebp;
+    // Save the current esp and ebp 
+    asm volatile("movl %%esp, %0" \
+                 :"=r"(curr_pcb->esp)   \
+                 :                \
+                 :"memory");
+
+    asm volatile("movl %%ebp, %0" \
+                 :"=r"(curr_pcb->ebp)   \
+                 :                \
+                 :"memory");
 
     if(get_next_inactive_terminal() != -1) {
         if(process_count > 0)
@@ -75,28 +82,27 @@ void pit_handler(){
         return;
     }
 
-    // asm volatile("movl %%ebp, %0" \
-    //              :"=r"(ebp)   \
-    //              :                \
-    //              :"memory");
+    // get next process to execute
+    pcb_t *next_pcb = get_pcb(next_scheduled_process());
 
-    // // Switch paging
-    // // TODO
+    backup_screen_position(&screen_x_backstore[curr_pcb->terminal_id], &screen_y_backstore[curr_pcb->terminal_id]);
+    load_screen_position(screen_x_backstore[next_pcb->terminal_id], screen_y_backstore[next_pcb->terminal_id]);
+    if(next_pcb->terminal_id == get_display_terminal())
+        update_cursor(screen_x_backstore[next_pcb->terminal_id], screen_y_backstore[next_pcb->terminal_id]);
 
-    // // Modify TSS for context switch.
-    // tss.ss0 = KERNEL_DS;
-    // // TODO
-    // tss.esp0 = curr_pcb->esp0;
+    // Switch paging
+    load_page_directory(page_directory_program[next_pcb->pid]);
 
-	// // change esp and ebp
-	// // TODO
-	// asm volatile(
-    //     "movl   %0, %%esp   ;"
-    //     "movl   %1, %%ebp   ;"
-    //     "LEAVE;"
-    //     "RET;"
-    //     : :"r"(next_pcb->current_esp), "r"(next_pcb->current_ebp) 
-    // );
-	sti();
+    // Modify TSS for context switch.
+    tss.ss0 = KERNEL_DS;
+    tss.esp0 = 8 * 1024 * 1024 - next_pcb->pid * 8 * 1024 - 1;
 
+	// change esp and ebp
+	asm volatile(
+        "movl   %0, %%esp   ;"
+        "movl   %1, %%ebp   ;"
+        "LEAVE;"
+        "RET;"
+        : :"r"(next_pcb->esp), "r"(next_pcb->ebp) 
+    );
 }
