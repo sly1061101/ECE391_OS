@@ -3,6 +3,8 @@
 #include "process.h"
 #include "x86_desc.h"
 #include "idt.h"
+#include "terminal.h"
+#include "paging.h"
 
 #define TOTAL_CLOCK_FREQ 1193182
 #define PIT_COMMAND_REGISTER 0x43
@@ -58,17 +60,20 @@ void pit_handler(){
 	// int current_terminal = get_running_terminal();
 	// int next_terminal = (current_terminal+1)%3;
 
-	// // get current pcb
-    // pcb_t * curr_pcb = get_current_pcb(); 
+	// get current pcb
+    pcb_t * curr_pcb = get_current_pcb();
 
     // // Save the current esp and ebp 
     // uint32_t esp;
     // uint32_t ebp;
 
-    // asm volatile("movl %%esp, %0" \
-    //              :"=r"(esp)   \
-    //              :                \
-    //              :"memory");
+    if(get_next_inactive_terminal() != -1) {
+        if(process_count > 0)
+            backup_screen_position(&screen_x_backstore[curr_pcb->terminal_id], &screen_y_backstore[curr_pcb->terminal_id]);
+        load_screen_position(0, 0);
+        syscall_execute((uint8_t*)"shell");
+        return;
+    }
 
     // asm volatile("movl %%ebp, %0" \
     //              :"=r"(ebp)   \
