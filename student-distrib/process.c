@@ -85,3 +85,17 @@ int32_t release_pid(uint32_t pid) {
 
     return 0;
 }
+
+int32_t next_scheduled_process() {
+    pcb_t *pcb = get_current_pcb();
+    int32_t i;
+    for(i = pcb->pid + 1; i < MAX_PROCESS_NUMBER; ++i) {
+        if(process_exist[i] && get_pcb(i)->active)
+            return i;
+    }
+    for(i = 0; i < pcb->pid; ++i) {
+        if(process_exist[i] && get_pcb(i)->active)
+            return i;
+    }
+    return -1;
+}

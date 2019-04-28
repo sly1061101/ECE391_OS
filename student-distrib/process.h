@@ -36,7 +36,7 @@ typedef struct file_desc {
 // modified
 typedef struct pcb {
     uint32_t pid;
-    uint32_t parent_pid;
+    int32_t  parent_pid;
     struct pcb *parent_pcb;
     uint32_t parent_ebp;
     uint32_t parent_esp;
@@ -44,6 +44,9 @@ typedef struct pcb {
     int8_t  args_array[MAX_ARG_SIZE];
     char available[MAX_FD_SIZE]; // when is it used?
     int32_t terminal_id;
+    int32_t active;
+    uint32_t esp;
+    uint32_t ebp;
 } pcb_t;
 
 // Current number of processes.
@@ -66,6 +69,8 @@ extern int32_t request_pid();
 
 // Release the given pid, should be called when process is halted.
 extern int32_t release_pid(uint32_t pid);
+
+extern int32_t next_scheduled_process();
 
 #endif
 
