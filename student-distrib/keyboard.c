@@ -5,6 +5,7 @@
 #include "idt.h"
 #include "terminal.h"
 #include "keyboard_scancode.h"
+#include "process.h"
 
 // special flags 
 int caps_flag = 0;
@@ -33,6 +34,27 @@ void keyboard_init()
   interrupt_handler[KEYBOARD_VEC_NUM] = keyboard_handler;
   enable_irq(KEYBOARD_IRQ);
 }
+
+int terminal_write_helper(int32_t fd, unsigned char* buf, int size)
+{
+    // Only Stout can be written to.
+    if(fd != 1)
+      return -1;
+
+    if(buf==NULL || size < 0)
+      return -1;
+
+    int i;
+    for(i = 0; i < size; i++)
+    {
+      // CAUTION: commented for test_terminal_write_size_larger_than_actual
+      // if(buf[i] == '\0')
+      //   break;
+      putc_display_terminal(buf[i]);
+    }
+    return i;
+}
+
 
 // reference https://github.com/arjun024/mkeykernel
 /* keyboard_handler
@@ -85,16 +107,16 @@ void keyboard_handler()
       if ((keycode_processed == 'l' || keycode_processed == 'L') && ctrl_flag ==1)
       {
         // First clear the screen, then print the content in keyboard_buffer so that the current line is preversed.
-        clear();
-        printf("391OS> ");
-        terminal_write(1, keyboard_buffer[display_terminal], keyboard_buffer_size[display_terminal]);        
+        clear_display_terminal();
+        printf_display_terminal("391OS> ");
+        terminal_write_helper(1, keyboard_buffer[display_terminal], keyboard_buffer_size[display_terminal]);        
         send_eoi(KEYBOARD_IRQ);
         return;
       }
 
       if(backspace_flag) {
         if(keyboard_buffer_size[display_terminal] > 0) {
-          backspace_delete();
+          backspace_delete_display_terminal();
           keyboard_buffer_size[display_terminal]--;
         }
       }
@@ -103,7 +125,7 @@ void keyboard_handler()
       if(default_flag){
         if(keyboard_buffer_size[display_terminal] < KEYBOARD_BUFFER_CAPACITY) {
           if(keycode_processed !=0 && keycode_processed != '\t'){
-            printf("%c", keycode_processed);
+            printf_display_terminal("%c", keycode_processed);
             int temp = keyboard_buffer_size[display_terminal];
             keyboard_buffer[display_terminal][temp] = keycode_processed;
             keyboard_buffer_size[display_terminal]++;
@@ -118,7 +140,7 @@ void keyboard_handler()
         // Special case when already has 128 characters and enter is pressed.
         else if(keyboard_buffer_size[display_terminal] == KEYBOARD_BUFFER_CAPACITY 
                   && keycode_processed == '\n') {
-          printf("%c", keycode_processed);
+          printf_display_terminal("%c", keycode_processed);
           terminal_buffer_write(keyboard_buffer[display_terminal], keyboard_buffer_size[display_terminal]);
           keyboard_buffer_size[display_terminal] = 0;
         }
