@@ -14,6 +14,11 @@
 #define CHANNEL_0 0x40
 #define PIT_IRQ 	0
 
+int32_t should_scheduling;
+
+void start_scheduling() {
+    should_scheduling = 1;
+}
 
 /*
  * 	 pit_init
@@ -24,6 +29,8 @@
  *   SIDE EFFECTS: pit that interrupts with given frequency
  */
 void pit_init(int32_t freq){
+
+    should_scheduling = 0;
 
 	/* Calculate our divisor */
 	int32_t divisor;
@@ -52,14 +59,11 @@ void pit_init(int32_t freq){
  *   SIDE EFFECTS: none
  */
 void pit_handler(){
-
-	cli();
 	send_eoi(PIT_IRQ);
 
-	// // get next active terminal
-	// int current_terminal = get_running_terminal();
-	// int next_terminal = (current_terminal+1)%3;
-
+    if(!should_scheduling)
+        return;
+ 
 	// get current pcb
     pcb_t * curr_pcb = get_current_pcb();
 

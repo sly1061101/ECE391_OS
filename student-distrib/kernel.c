@@ -188,7 +188,7 @@ void entry(unsigned long magic, unsigned long addr) {
     // Clear the screen.
     clear();
     /* Execute the first program ("shell") ... */
-    syscall_execute((uint8_t*)"shell");
+    start_scheduling();
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
 }

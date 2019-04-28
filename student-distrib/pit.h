@@ -11,6 +11,8 @@ extern void pit_init (int32_t freq);
 /* Pit interrupt handler*/
 extern void pit_handler(void);
 
+extern void start_scheduling();
+
 #endif
 
 #endif
