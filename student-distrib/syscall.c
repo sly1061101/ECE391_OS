@@ -198,6 +198,18 @@ int32_t syscall_execute (const uint8_t* command) {
         else
             page_table_terminal_video_memory[pcb->terminal_id][184].page_base_address = (uint32_t)(video_mem_backstore[pcb->terminal_id]) >> VAL_12;
 
+        // Always map the next 4KB page to physical video memory so that each process still has access.
+        page_table_terminal_video_memory[pcb->terminal_id][185].present = 1;
+        page_table_terminal_video_memory[pcb->terminal_id][185].read_write = 1;
+        page_table_terminal_video_memory[pcb->terminal_id][185].user_supervisor = 1;
+        page_table_terminal_video_memory[pcb->terminal_id][185].write_through = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][185].cache_disabled = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][185].accessed = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][185].dirty = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][185].pt_attribute_index = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][185].global_page = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][185].available = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][185].page_base_address = VIDEO >> VAL_12;
     }
     else {
         pcb->terminal_id = get_current_pcb()->terminal_id;
