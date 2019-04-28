@@ -9,7 +9,18 @@
 
 #ifndef ASM
 
+extern uint8_t video_mem_backstore[TERMINAL_NUM][4 * 1024];
+extern int screen_x_backstore[TERMINAL_NUM];
+extern int screen_y_backstore[TERMINAL_NUM];
+
 extern int get_display_terminal();
+
+// Mark terminal to be used.
+extern void set_terminal_active(uint32_t terminal_id, int32_t pid);
+// Get next terminal which still hasn't been used.
+extern int32_t get_next_inactive_terminal();
+
+extern int32_t terminal_switch(uint32_t terminal_id);
 
 extern int terminal_buffer_write(unsigned char *buf, int size);
 

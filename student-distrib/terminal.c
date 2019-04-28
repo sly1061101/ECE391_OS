@@ -1,9 +1,11 @@
 #include "terminal.h"
+#include "paging.h"
+#include "lib.h"
 
 unsigned char terminal_buffer[TERMINAL_NUM][TERMINAL_BUFFER_CAPACITY];
 int terminal_buffer_size[TERMINAL_NUM];
 
-uint8_t video_mem_backstore[TERMINAL_NUM][4 * 1024];
+uint8_t video_mem_backstore[TERMINAL_NUM][4 * 1024] __attribute__((aligned(4096)));
 int screen_x_backstore[TERMINAL_NUM];
 int screen_y_backstore[TERMINAL_NUM];
 
@@ -13,10 +15,30 @@ int get_display_terminal() {
     return display_terminal;
 }
 
+int32_t terminal_active[TERMINAL_NUM];
+
+void set_terminal_active(uint32_t terminal_id, int32_t pid) {
+  terminal_active[terminal_id] = pid;
+}
+
+extern int32_t get_next_inactive_terminal() {
+  int32_t i;
+  for(i = 0; i < TERMINAL_NUM; ++i) {
+    if(terminal_active[i] == -1)
+      return i;
+  }
+  return -1;
+}
+
 void terminal_init() {
   int i;
-  for (i = 0 ; i < TERMINAL_NUM; i++)
+  for (i = 0 ; i < TERMINAL_NUM; i++) {
     terminal_buffer_size[i] = 0;
+    terminal_active[i] = -1;
+    screen_x_backstore[i] = 0;
+    screen_y_backstore[i] = 0;
+    memset(video_mem_backstore[i], 0, 4 * 1024);
+  }
 
   display_terminal = 0;
 }
@@ -69,11 +91,12 @@ int terminal_buffer_move(int size)
 
 int32_t terminal_switch(uint32_t terminal_id) {
   backup_video_memory(video_mem_backstore[display_terminal]);
-  backup_screen_position(&screen_x_backstore[display_terminal], &screen_y_backstore[display_terminal]);
   load_video_memory(video_mem_backstore[terminal_id]);
-  load_screen_position(screen_x_backstore[terminal_id], screen_y_backstore[terminal_id]);
+
+  page_table_terminal_video_memory[display_terminal][184].page_base_address = (uint32_t)video_mem_backstore[display_terminal] >> 12;
+  page_table_terminal_video_memory[terminal_id][184].page_base_address = 0xB8000 >> 12;
+
   display_terminal = terminal_id;
-  running_terminal = terminal_id;
 }
 
 /* terminal_open
