@@ -8,7 +8,6 @@ int screen_x_backstore[TERMINAL_NUM];
 int screen_y_backstore[TERMINAL_NUM];
 
 int display_terminal;
-int running_terminal;
 
 int get_display_terminal() {
     return display_terminal;
@@ -20,7 +19,6 @@ void terminal_init() {
     terminal_buffer_size[i] = 0;
 
   display_terminal = 0;
-  running_terminal = 0;
 }
 
 /* terminal_buffer_write
@@ -57,15 +55,15 @@ int terminal_buffer_write(unsigned char *buf, int size) {
 */
 int terminal_buffer_move(int size)
 {
-  if(size > terminal_buffer_size[running_terminal])
+  if(size > terminal_buffer_size[get_current_pcb()->terminal_id])
     return -1;
 
   int i;
-  for(i = 0; i < terminal_buffer_size[running_terminal] - size; i++)
+  for(i = 0; i < terminal_buffer_size[get_current_pcb()->terminal_id] - size; i++)
   {
-    terminal_buffer[running_terminal][i] = terminal_buffer[running_terminal][i + size];
+    terminal_buffer[get_current_pcb()->terminal_id][i] = terminal_buffer[get_current_pcb()->terminal_id][i + size];
   }
-  terminal_buffer_size[running_terminal] -= size; 
+  terminal_buffer_size[get_current_pcb()->terminal_id] -= size; 
   return i;
 }
 
@@ -116,13 +114,13 @@ int terminal_read(int32_t fd, unsigned char* buf, int size)
     return -1;
 
   // Wait until terminal buffer is not empty.
-  while(terminal_buffer_size[running_terminal] == 0);
+  while(terminal_buffer_size[get_current_pcb()->terminal_id] == 0);
 
   int i;
-  for(i = 0; i < size && i < terminal_buffer_size[running_terminal]; i++)
+  for(i = 0; i < size && i < terminal_buffer_size[get_current_pcb()->terminal_id]; i++)
   {
-    buf[i] = terminal_buffer[running_terminal][i];
-    if(terminal_buffer[running_terminal][i] == '\n')
+    buf[i] = terminal_buffer[get_current_pcb()->terminal_id][i];
+    if(terminal_buffer[get_current_pcb()->terminal_id][i] == '\n')
     {
       i++;
       break;

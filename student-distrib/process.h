@@ -43,6 +43,7 @@ typedef struct pcb {
     file_desc_t file_array[MAX_FD_SIZE];
     int8_t  args_array[MAX_ARG_SIZE];
     char available[MAX_FD_SIZE]; // when is it used?
+    int32_t terminal_id;
 } pcb_t;
 
 // Current number of processes.
