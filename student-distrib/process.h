@@ -41,7 +41,17 @@ typedef struct file_desc {
     int32_t flag;
 } file_desc_t;
 
-// modified
+/*
+    This struct saves information for each process.
+        pid - the unique id for the process
+        parent_pid - the pid for parent process, -1 if parent does not exist
+        file_array - information for opened files for the process
+        args_array - executing command for the process
+        terminal_id - the id of the terminal this process running on
+        active - whether this process is active for scheduling
+        esp - the latest esp when the process became inactive (e.g. switch out by the scheduler)
+        ebp - the latest esp when the process became inactive (e.g. switch out by the scheduler)
+*/
 typedef struct pcb {
     uint32_t pid;
     int32_t  parent_pid;

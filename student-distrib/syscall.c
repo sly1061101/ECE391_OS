@@ -287,9 +287,6 @@ int32_t syscall_execute (const uint8_t* command) {
         parent_pcb->active = 0;
 
         // Save the current esp and ebp data so that they can be restored at syscall_halt().
-        uint32_t esp;
-        uint32_t ebp;
-
         asm volatile("movl %%esp, %0" \
                     :"=r"(parent_pcb->esp)   \
                     :                \
