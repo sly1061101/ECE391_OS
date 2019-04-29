@@ -54,9 +54,6 @@ typedef struct pcb {
     uint32_t ebp;
 } pcb_t;
 
-// Current number of processes.
-extern uint32_t process_count;
-
 // Flags showing whether a process exists.
 extern int8_t process_exist[MAX_PROCESS_NUMBER];
 
@@ -82,6 +79,8 @@ extern void switch_process(uint32_t pid);
 extern void start_scheduling();
 
 extern int32_t is_scheduling_started();
+
+extern uint32_t get_process_count();
 
 #endif
 

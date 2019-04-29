@@ -5,26 +5,31 @@
 #include "process.h"
 #include "terminal.h"
 
+// This virtual address is not always mapped to physical video memory.
+//  When process on background terminal is running, it is mapped to the
+//  backstorage space for that terminal.
 #define VIDEO       0xB8000
-#define NUM_COLS    80
-#define NUM_ROWS    25
-#define ATTRIB      0x7
+// This virtual address is set up in all user program page
+//  tables such that it is always mapped to physical video memory.
+//  We can always use it to modify physical video memory (what is 
+//  really shown on screen) no matter which process is running.
+#define VIDEO_ALWAYS_TO_PHYSICAL 0xB9000
 
 static void scroll();
 
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
-static char* video_mem_physical = (char *)(0xB9000);
+static char* video_mem_always_to_physical = (char *)(VIDEO_ALWAYS_TO_PHYSICAL);
 
 // Load content from buf into video memory.
 void load_video_memory(const char *buf) {
-    memcpy(video_mem_physical, buf, 4 * 1024);
+    memcpy(video_mem_always_to_physical, buf, 4 * 1024);
 }
 
 // Backup the content in video memory into buf.
 void backup_video_memory(char *buf) {
-    memcpy(buf, video_mem_physical, 4 * 1024);
+    memcpy(buf, video_mem_always_to_physical, 4 * 1024);
 }
 
 // Load screen position.
@@ -67,8 +72,8 @@ void clear_display_terminal(void) {
     
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-        *(uint8_t *)(video_mem_physical + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem_physical + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem_always_to_physical + (i << 1)) = ' ';
+        *(uint8_t *)(video_mem_always_to_physical + (i << 1) + 1) = ATTRIB;
     }
 
     screen_x_backstore[get_display_terminal()] = 0;
@@ -161,8 +166,8 @@ static void scroll_display_terminal()
         {
             new_pos = NUM_COLS * x + y;
             old_pos = NUM_COLS * x + y + NUM_COLS;
-            *(uint8_t *)(video_mem_physical + (new_pos << 1)) = *(video_mem_physical + (old_pos << 1));           
-            *(uint8_t *)(video_mem_physical + (new_pos << 1) + 1) = ATTRIB;
+            *(uint8_t *)(video_mem_always_to_physical + (new_pos << 1)) = *(video_mem_always_to_physical + (old_pos << 1));           
+            *(uint8_t *)(video_mem_always_to_physical + (new_pos << 1) + 1) = ATTRIB;
         }
     }
     
@@ -172,8 +177,8 @@ static void scroll_display_terminal()
     for(y = 0; y < NUM_COLS; y++)
     {   
         new_pos = NUM_COLS * x + y;
-        *(uint8_t *)(video_mem_physical + (new_pos << 1)) = ' ';           
-        *(uint8_t *)(video_mem_physical + (new_pos << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem_always_to_physical + (new_pos << 1)) = ' ';           
+        *(uint8_t *)(video_mem_always_to_physical + (new_pos << 1) + 1) = ATTRIB;
     }
 
     screen_x_backstore[get_display_terminal()] = 0;
@@ -239,8 +244,8 @@ void backspace_delete_display_terminal() {
     }                    
 
     // change registers 
-    *(uint8_t *)(video_mem_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1)) = ' ';
-    *(uint8_t *)(video_mem_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1) + 1) = ATTRIB;  
+    *(uint8_t *)(video_mem_always_to_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1)) = ' ';
+    *(uint8_t *)(video_mem_always_to_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1) + 1) = ATTRIB;  
     
     update_cursor(screen_x_backstore[get_display_terminal()], screen_y_backstore[get_display_terminal()]);                                                                                            
 }
@@ -553,8 +558,8 @@ void putc_display_terminal(uint8_t c) {
         screen_x_backstore[get_display_terminal()] = 0;
         screen_y_backstore[get_display_terminal()]++;
     } else {
-        *(uint8_t *)(video_mem_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1)) = c;
-        *(uint8_t *)(video_mem_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem_always_to_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1)) = c;
+        *(uint8_t *)(video_mem_always_to_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1) + 1) = ATTRIB;
         screen_x_backstore[get_display_terminal()]++;
         if(screen_x_backstore[get_display_terminal()] == NUM_COLS) {
             screen_x_backstore[get_display_terminal()] = 0;

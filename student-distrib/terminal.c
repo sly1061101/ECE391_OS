@@ -5,7 +5,9 @@
 unsigned char terminal_buffer[TERMINAL_NUM][TERMINAL_BUFFER_CAPACITY];
 int terminal_buffer_size[TERMINAL_NUM];
 
+// Must align to 4KB boundary since it would be used in page table.
 uint8_t video_mem_backstore[TERMINAL_NUM][4 * 1024] __attribute__((aligned(4096)));
+
 int screen_x_backstore[TERMINAL_NUM];
 int screen_y_backstore[TERMINAL_NUM];
 
@@ -30,10 +32,6 @@ extern int32_t get_next_inactive_terminal() {
   }
   return -1;
 }
-
-#define NUM_COLS    80
-#define NUM_ROWS    25
-#define ATTRIB      0x7
 
 void terminal_init() {
   int i;
@@ -99,7 +97,7 @@ int terminal_buffer_move(int size)
   return i;
 }
 
-void terminal_switch(uint32_t terminal_id) {
+void switch_terminal(uint32_t terminal_id) {
   
   backup_video_memory((char *)(video_mem_backstore[display_terminal]));
   load_video_memory((char *)(video_mem_backstore[terminal_id]));
@@ -192,6 +190,26 @@ int terminal_write(int32_t fd, unsigned char* buf, int size)
       // if(buf[i] == '\0')
       //   break;
       putc(buf[i]);
+    }
+    return i;
+}
+
+int terminal_write_display_terminal(int32_t fd, unsigned char* buf, int size)
+{
+    // Only Stout can be written to.
+    if(fd != 1)
+      return -1;
+
+    if(buf==NULL || size < 0)
+      return -1;
+
+    int i;
+    for(i = 0; i < size; i++)
+    {
+      // CAUTION: commented for test_terminal_write_size_larger_than_actual
+      // if(buf[i] == '\0')
+      //   break;
+      putc_display_terminal(buf[i]);
     }
     return i;
 }

@@ -187,7 +187,7 @@ void entry(unsigned long magic, unsigned long addr) {
 #endif
     // Clear the screen.
     clear();
-    /* Execute the first program ("shell") ... */
+    /* Start scheduling and shells will be launched by scheduler. */
     start_scheduling();
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");

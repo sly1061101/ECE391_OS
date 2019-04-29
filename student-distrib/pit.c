@@ -59,7 +59,7 @@ void pit_handler(){
     // If there are still inactive terminals, start shell on it.
     if(get_next_inactive_terminal() != -1) {
         // If already has process running, we need to backup some data for it so that we can switch back to it later.
-        if(process_count > 0) {
+        if(get_process_count() > 0) {
             pcb_t *curr_pcb = get_current_pcb();
 
             // Save the current esp and ebp 

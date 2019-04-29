@@ -35,27 +35,6 @@ void keyboard_init()
   enable_irq(KEYBOARD_IRQ);
 }
 
-int terminal_write_helper(int32_t fd, unsigned char* buf, int size)
-{
-    // Only Stout can be written to.
-    if(fd != 1)
-      return -1;
-
-    if(buf==NULL || size < 0)
-      return -1;
-
-    int i;
-    for(i = 0; i < size; i++)
-    {
-      // CAUTION: commented for test_terminal_write_size_larger_than_actual
-      // if(buf[i] == '\0')
-      //   break;
-      putc_display_terminal(buf[i]);
-    }
-    return i;
-}
-
-
 // reference https://github.com/arjun024/mkeykernel
 /* keyboard_handler
  * Keyboard interrupt handler with US keyboard layout
@@ -81,15 +60,15 @@ void keyboard_handler()
       switch (keycode)
       {
         case F1:
-          terminal_switch(0);
+          switch_terminal(0);
           break;
 
         case F2:
-          terminal_switch(1);
+          switch_terminal(1);
           break;
 
         case F3:
-          terminal_switch(2);
+          switch_terminal(2);
           break;
         
         default:
@@ -102,6 +81,8 @@ void keyboard_handler()
 
     if (keycode >= 0)
     {
+      // CAUTION: Everything here must be showing on the displayed terminal instead of the currently running terminal. 
+      //  Set of functions have been created in lib.h/c to help. E.g. prinf_display_terminal(), putc_display_terminal() etc.
       int display_terminal = get_display_terminal();
 
       if ((keycode_processed == 'l' || keycode_processed == 'L') && ctrl_flag ==1)
@@ -109,7 +90,7 @@ void keyboard_handler()
         // First clear the screen, then print the content in keyboard_buffer so that the current line is preversed.
         clear_display_terminal();
         printf_display_terminal("391OS> ");
-        terminal_write_helper(1, keyboard_buffer[display_terminal], keyboard_buffer_size[display_terminal]);        
+        terminal_write_display_terminal(1, keyboard_buffer[display_terminal], keyboard_buffer_size[display_terminal]);        
         send_eoi(KEYBOARD_IRQ);
         return;
       }

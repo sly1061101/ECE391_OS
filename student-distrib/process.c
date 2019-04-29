@@ -158,3 +158,7 @@ void start_scheduling() {
 int32_t is_scheduling_started() {
     return scheduleing_started;
 }
+
+ uint32_t get_process_count() {
+     return process_count;
+ }

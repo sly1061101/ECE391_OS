@@ -62,8 +62,10 @@ int32_t halt_current_process(uint32_t status) {
     }
 
     if(pcb->parent_pcb == NULL) {
-        // If the first shell is halted, restart it automatically.
+        // If the first shell on any terminal is halted, restart it automatically.
         (void) release_pid(pcb->pid);
+        // Mark the terminal to be inactive so that syscall_execute() could find 
+        //  it and correctly handle the situation.
         set_terminal_state(get_current_pcb()->terminal_id, TERMINAL_INACTIVE);
         (void) syscall_execute((uint8_t*)"shell");
     }
@@ -111,6 +113,10 @@ int32_t halt_current_process(uint32_t status) {
 int32_t syscall_halt (uint8_t status) {
     return halt_current_process(status);
 }
+
+#define PT_IDX_VIDEO_MEM 184
+#define PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM 185
+#define PD_IDX_FIRST_4MB 0
 
 /*
  *   syscall_execute
@@ -182,35 +188,35 @@ int32_t syscall_execute (const uint8_t* command) {
         pcb->terminal_id = next_inactive_terminal;
         set_terminal_state(pcb->terminal_id, TERMINAL_ACTIVE);
         // Set up page table for processes running on this terminal.
-        page_table_terminal_video_memory[pcb->terminal_id][184].present = 1;
-        page_table_terminal_video_memory[pcb->terminal_id][184].read_write = 1;
-        page_table_terminal_video_memory[pcb->terminal_id][184].user_supervisor = 1;
-        page_table_terminal_video_memory[pcb->terminal_id][184].write_through = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][184].cache_disabled = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][184].accessed = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][184].dirty = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][184].pt_attribute_index = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][184].global_page = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][184].available = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].present = 1;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].read_write = 1;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].user_supervisor = 1;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].write_through = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].cache_disabled = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].accessed = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].dirty = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].pt_attribute_index = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].global_page = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].available = 0;
         // If this terminal is currently displayed, map video memory addresses to physical video memory.
         //  Otherwise map to video memory backstorage
         if(pcb->terminal_id == get_display_terminal())
-            page_table_terminal_video_memory[pcb->terminal_id][184].page_base_address = VIDEO >> VAL_12;
+            page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].page_base_address = VIDEO >> VAL_12;
         else
-            page_table_terminal_video_memory[pcb->terminal_id][184].page_base_address = (uint32_t)(video_mem_backstore[pcb->terminal_id]) >> VAL_12;
+            page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_VIDEO_MEM].page_base_address = (uint32_t)(video_mem_backstore[pcb->terminal_id]) >> VAL_12;
 
         // Always map the next 4KB page to physical video memory so that each process still has access.
-        page_table_terminal_video_memory[pcb->terminal_id][185].present = 1;
-        page_table_terminal_video_memory[pcb->terminal_id][185].read_write = 1;
-        page_table_terminal_video_memory[pcb->terminal_id][185].user_supervisor = 1;
-        page_table_terminal_video_memory[pcb->terminal_id][185].write_through = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][185].cache_disabled = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][185].accessed = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][185].dirty = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][185].pt_attribute_index = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][185].global_page = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][185].available = 0;
-        page_table_terminal_video_memory[pcb->terminal_id][185].page_base_address = VIDEO >> VAL_12;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM].present = 1;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM].read_write = 1;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM].user_supervisor = 1;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM].write_through = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM].cache_disabled = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM].accessed = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM].dirty = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM].pt_attribute_index = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM].global_page = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM].available = 0;
+        page_table_terminal_video_memory[pcb->terminal_id][PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM].page_base_address = VIDEO >> VAL_12;
     }
     else {
         pcb->terminal_id = get_current_pcb()->terminal_id;
@@ -227,7 +233,7 @@ int32_t syscall_execute (const uint8_t* command) {
         page_directory_program[pid][i] = page_directory_initial[i];
 
     // Page table for video memory should be changed to corresponding terminal's.
-    page_directory_program[pid][0].entry_PT.pt_base_address = (uint32_t)page_table_terminal_video_memory[pcb->terminal_id] >> VAL_12;
+    page_directory_program[pid][PD_IDX_FIRST_4MB].entry_PT.pt_base_address = (uint32_t)page_table_terminal_video_memory[pcb->terminal_id] >> VAL_12;
 
     // The 4MB page starting from 128MB should be mapped to correspoding physical page of a process's user space.
     page_directory_program[pid][USER_STACK_VIRTUAL_PAGE_INDEX].entry_page.present = 1;
@@ -254,7 +260,6 @@ int32_t syscall_execute (const uint8_t* command) {
 
     // Set up PCB for user process.
     pcb->pid = pid;
-    pcb->active = 1;
 
     memcpy(pcb->args_array,args,MAX_ARG_SIZE);
         
@@ -269,7 +274,7 @@ int32_t syscall_execute (const uint8_t* command) {
         pcb -> file_array[i].flag = 0; 
 
     if(next_inactive_terminal != -1) {
-        // First process of each terminal does not have parent.
+        // We consider first process of each terminal not having parent.
         pcb->parent_pid = -1;
         pcb->parent_pcb = NULL;
     }
@@ -277,6 +282,7 @@ int32_t syscall_execute (const uint8_t* command) {
         // Current process is the parent of the program to be executed.
         pcb->parent_pcb = get_current_pcb();
         pcb->parent_pid = pcb->parent_pcb->pid;
+        // Mark its parent to be inactive so that scheduler will ignore it.
         pcb->parent_pcb->active = 0;
 
         // Save the current esp and ebp data so that they can be restored at syscall_halt().
@@ -296,6 +302,9 @@ int32_t syscall_execute (const uint8_t* command) {
         pcb->parent_esp = esp;
         pcb->parent_ebp = ebp;
     }
+
+    // Mark the process to be executed to active.
+    pcb->active = 1;
 
     // The kernel space of a process in physical memory starts at 8MB - 8KB - 8KB * pid.
     uint32_t kernel_space_base_address = KERNEL_MEMORY_BOT - KERNEL_STACK_SIZE - KERNEL_STACK_SIZE * pid;
