@@ -13,6 +13,13 @@ int screen_y_backstore[TERMINAL_NUM];
 
 int display_terminal;
 
+
+/* get_display_terminal
+* get the display terminal by return the display terminal address
+* Input: None
+* Output: None
+* Side Effects: none
+*/
 int get_display_terminal() {
     return display_terminal;
 }
@@ -20,9 +27,22 @@ int get_display_terminal() {
 // 0 inactive, 1 active.
 int32_t terminal_state[TERMINAL_NUM];
 
+/* set_terminal_state
+* set the terminal state
+* Input: terminal id and state
+* Output: None
+* Side Effects: none
+*/
 void set_terminal_state(uint32_t terminal_id, uint32_t state) {
   terminal_state[terminal_id] = state;
 }
+
+/* get_next_inactive_terminal
+* get the next inactive terminal
+* Input: None
+* Output: i for sucess and 0 for fail
+* Side Effects: none
+*/
 
 extern int32_t get_next_inactive_terminal() {
   int32_t i;
@@ -32,6 +52,14 @@ extern int32_t get_next_inactive_terminal() {
   }
   return -1;
 }
+
+/* terminal_init
+* initilize the terminal
+* Input: None
+* Output: none
+* Side Effects: none
+*/
+
 
 void terminal_init() {
   int i;
@@ -97,6 +125,13 @@ int terminal_buffer_move(int size)
   return i;
 }
 
+
+/* switch_terminal
+* Switch the terminal based on the terminal id 
+* Input: terminal id
+* Output: none
+* Side Effects: none
+*/
 void switch_terminal(uint32_t terminal_id) {
   
   backup_video_memory((char *)(video_mem_backstore[display_terminal]));
@@ -194,6 +229,12 @@ int terminal_write(int32_t fd, unsigned char* buf, int size)
     return i;
 }
 
+/* terminal_write_display_terminal
+ * Write TO the display terminal
+ * Inputs: file directory, buffer and the size
+ * Outputs: number of bytes written or -1
+ * Side Effects: none
+ */
 int terminal_write_display_terminal(int32_t fd, unsigned char* buf, int size)
 {
     // Only Stout can be written to.
