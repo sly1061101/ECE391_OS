@@ -38,7 +38,7 @@ volatile uint32_t process_is_interrupted[MAX_PROCESS_NUMBER];
 void rtc_init(void)
 {
     int32_t i;
-    unsigned freq = PHYSICAL_RTC_FREQ;
+    int32_t freq = PHYSICAL_RTC_FREQ;
 
     cli();
     
