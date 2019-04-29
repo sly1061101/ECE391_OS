@@ -98,6 +98,9 @@ void terminal_switch(uint32_t terminal_id) {
   page_table_terminal_video_memory[display_terminal][184].page_base_address = (uint32_t)video_mem_backstore[display_terminal] >> 12;
   page_table_terminal_video_memory[terminal_id][184].page_base_address = 0xB8000 >> 12;
 
+  page_table_program_vidmap[display_terminal][512].page_base_address = (uint32_t)video_mem_backstore[display_terminal] >> 12;
+  page_table_program_vidmap[terminal_id][512].page_base_address = 0xB8000 >> 12;
+
   load_page_directory(page_directory_program[get_current_pcb()->pid]);
 
   display_terminal = terminal_id;

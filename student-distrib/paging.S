@@ -60,7 +60,7 @@ page_table_terminal_video_memory:
 # Page table for user program to map video memory into user-space, i.e. for the use of syscall_vidmap().
     .align  4096
 page_table_program_vidmap:
-    .rept 1024
+    .rept TERMINAL_NUM * NUM_PT_SIZE
     .long NOT_PRESENT_PAGE
     .endr
 

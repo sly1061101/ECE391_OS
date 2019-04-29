@@ -543,18 +543,19 @@ int32_t syscall_vidmap (uint8_t** screen_start) {
     }
     else
     {
+        uint32_t terminal_id = get_current_pcb()->terminal_id;
         // Set up page table.
-        page_table_program_vidmap[PT_ENTRY_IDX].present = 1;
-        page_table_program_vidmap[PT_ENTRY_IDX].read_write = 1;
-        page_table_program_vidmap[PT_ENTRY_IDX].user_supervisor = 1;
-        page_table_program_vidmap[PT_ENTRY_IDX].write_through = 0;
-        page_table_program_vidmap[PT_ENTRY_IDX].cache_disabled = 0;
-        page_table_program_vidmap[PT_ENTRY_IDX].accessed = 0;
-        page_table_program_vidmap[PT_ENTRY_IDX].dirty = 0;
-        page_table_program_vidmap[PT_ENTRY_IDX].pt_attribute_index = 0;
-        page_table_program_vidmap[PT_ENTRY_IDX].global_page = 0;
-        page_table_program_vidmap[PT_ENTRY_IDX].available = 0;
-        page_table_program_vidmap[PT_ENTRY_IDX].page_base_address = VIDEO >> VAL_12;
+        page_table_program_vidmap[terminal_id][PT_ENTRY_IDX].present = 1;
+        page_table_program_vidmap[terminal_id][PT_ENTRY_IDX].read_write = 1;
+        page_table_program_vidmap[terminal_id][PT_ENTRY_IDX].user_supervisor = 1;
+        page_table_program_vidmap[terminal_id][PT_ENTRY_IDX].write_through = 0;
+        page_table_program_vidmap[terminal_id][PT_ENTRY_IDX].cache_disabled = 0;
+        page_table_program_vidmap[terminal_id][PT_ENTRY_IDX].accessed = 0;
+        page_table_program_vidmap[terminal_id][PT_ENTRY_IDX].dirty = 0;
+        page_table_program_vidmap[terminal_id][PT_ENTRY_IDX].pt_attribute_index = 0;
+        page_table_program_vidmap[terminal_id][PT_ENTRY_IDX].global_page = 0;
+        page_table_program_vidmap[terminal_id][PT_ENTRY_IDX].available = 0;
+        page_table_program_vidmap[terminal_id][PT_ENTRY_IDX].page_base_address = VIDEO >> VAL_12;
 
         // Modify processs page directory.
         uint32_t pid = get_current_pcb()->pid;
@@ -568,7 +569,9 @@ int32_t syscall_vidmap (uint8_t** screen_start) {
         page_directory_program[pid][PD_ENTRY_IDX].entry_PT.page_size = 0; // 4KB page table
         page_directory_program[pid][PD_ENTRY_IDX].entry_PT.global_page = 0;
         page_directory_program[pid][PD_ENTRY_IDX].entry_PT.available = 0;
-        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.pt_base_address = (uint32_t)page_table_program_vidmap >> VAL_12;
+        page_directory_program[pid][PD_ENTRY_IDX].entry_PT.pt_base_address = (uint32_t)page_table_program_vidmap[terminal_id] >> VAL_12;
+
+        load_page_directory(page_directory_program[pid]);
 
         // Calculate address.
         *screen_start = (uint8_t*)(PD_ENTRY_IDX * VAL_4 * VAL_1024 * VAL_1024 + PT_ENTRY_IDX * VAL_4 * VAL_1024);

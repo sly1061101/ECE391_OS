@@ -73,7 +73,7 @@ extern pdt_entry_t page_directory_program[MAX_PROCESS_NUMBER][NUM_PDT_SIZE];
 extern pt_entry_t page_table_terminal_video_memory[TERMINAL_NUM][NUM_PT_SIZE];
 
 // Page table for user program to map video memory into user-space, i.e. for the use of syscall_vidmap().
-extern pt_entry_t page_table_program_vidmap[NUM_PT_SIZE];
+extern pt_entry_t page_table_program_vidmap[TERMINAL_NUM][NUM_PT_SIZE];
 
 // Load a page directory into CR3 register.
 extern void load_page_directory(pdt_entry_t page_directory_initial[NUM_PDT_SIZE]);
