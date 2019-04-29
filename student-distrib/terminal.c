@@ -31,6 +31,10 @@ extern int32_t get_next_inactive_terminal() {
   return -1;
 }
 
+#define NUM_COLS    80
+#define NUM_ROWS    25
+#define ATTRIB      0x7
+
 void terminal_init() {
   int i;
   for (i = 0 ; i < TERMINAL_NUM; i++) {
@@ -38,7 +42,12 @@ void terminal_init() {
     terminal_state[i] = TERMINAL_INACTIVE;
     screen_x_backstore[i] = 0;
     screen_y_backstore[i] = 0;
-    memset(video_mem_backstore[i], 0, 4 * 1024);
+
+    int32_t j;
+    for (j = 0; j < NUM_COLS * NUM_ROWS; j++) {
+        *(uint8_t *)(video_mem_backstore[i] + (j << 1)) = ' ';
+        *(uint8_t *)(video_mem_backstore[i] + (j << 1) + 1) = ATTRIB;
+    }
   }
 
   display_terminal = 0;
