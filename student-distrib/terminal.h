@@ -14,6 +14,12 @@
 
 #define _4KB 4 * 1024
 
+#define VAL_184     184
+#define VAL_512     512
+#define VAL_4096    4096
+#define VAL_1024    1024
+#define VAL_4       4
+#define VIDEO       0xB8000
 // Video memory backstorage space for background terminals.
 extern uint8_t video_mem_backstore[TERMINAL_NUM][_4KB];
 // Screen position backstorage for background terminals.

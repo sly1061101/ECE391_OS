@@ -6,7 +6,7 @@ unsigned char terminal_buffer[TERMINAL_NUM][TERMINAL_BUFFER_CAPACITY];
 int terminal_buffer_size[TERMINAL_NUM];
 
 // Must align to 4KB boundary since it would be used in page table.
-uint8_t video_mem_backstore[TERMINAL_NUM][4 * 1024] __attribute__((aligned(4096)));
+uint8_t video_mem_backstore[TERMINAL_NUM][VAL_4 * VAL_1024] __attribute__((aligned(VAL_4096)));
 
 int screen_x_backstore[TERMINAL_NUM];
 int screen_y_backstore[TERMINAL_NUM];
@@ -137,11 +137,11 @@ void switch_terminal(uint32_t terminal_id) {
   backup_video_memory((char *)(video_mem_backstore[display_terminal]));
   load_video_memory((char *)(video_mem_backstore[terminal_id]));
 
-  page_table_terminal_video_memory[display_terminal][184].page_base_address = (uint32_t)video_mem_backstore[display_terminal] >> 12;
-  page_table_terminal_video_memory[terminal_id][184].page_base_address = 0xB8000 >> 12;
+  page_table_terminal_video_memory[display_terminal][VAL_184].page_base_address = (uint32_t)video_mem_backstore[display_terminal] >> 12;
+  page_table_terminal_video_memory[terminal_id][VAL_184].page_base_address = VIDEO >> 12;
 
-  page_table_program_vidmap[display_terminal][512].page_base_address = (uint32_t)video_mem_backstore[display_terminal] >> 12;
-  page_table_program_vidmap[terminal_id][512].page_base_address = 0xB8000 >> 12;
+  page_table_program_vidmap[display_terminal][VAL_512].page_base_address = (uint32_t)video_mem_backstore[display_terminal] >> 12;
+  page_table_program_vidmap[terminal_id][VAL_512].page_base_address = VIDEO >> 12;
 
   load_page_directory(page_directory_program[get_current_pcb()->pid]);
 
