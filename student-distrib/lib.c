@@ -55,6 +55,10 @@ void clear(void) {
         update_cursor(screen_x, screen_y);
 }
 
+/* void clear_display_terminal(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Clears display terminal's video memory */
 void clear_display_terminal(void) {
     if(get_current_pcb()->terminal_id == get_display_terminal()) {
         clear();
@@ -134,6 +138,12 @@ static void scroll()
     screen_y = NUM_ROWS - 1;
 }
 
+/*
+*   scroll_display_terminal
+*   Inputs: scroll display terminal's screen
+*   Return Value: void
+*   Function: enable scrolling
+*/
 static void scroll_display_terminal()
 {
     if(get_current_pcb()->terminal_id == get_display_terminal()) {
@@ -200,6 +210,13 @@ void backspace_delete() {
     if(get_current_pcb()->terminal_id == get_display_terminal())
         update_cursor(screen_x, screen_y);                                                                                          
 }
+
+/*
+*   backspace_delete_display_terminal
+*   Inputs: none
+*   Return Value: void
+*   Function:  perform backspace on display terminal
+*/
 
 void backspace_delete_display_terminal() {
     if(get_current_pcb()->terminal_id == get_display_terminal()) {
@@ -354,6 +371,12 @@ format_char_switch:
     return (buf - format);
 }
 
+/*
+*   printf_display_terminal
+*   Inputs: format
+*   Return Value: buf
+*   Function: standard printf on display temrinal
+*/
 int32_t printf_display_terminal(int8_t *format, ...) {
 
     /* Pointer to the format string */
@@ -476,6 +499,10 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
+/* int32_t puts_display_terminal;
+ *   Inputs: int_8* s = pointer to a string of characters
+ *   Return Value: Number of bytes written
+ *   Function: Output a string to the console on display terminal */
 int32_t puts_display_terminal(int8_t* s) {
     if(get_current_pcb()->terminal_id == get_display_terminal()) {
         return puts(s);
@@ -512,6 +539,10 @@ void putc(uint8_t c) {
         update_cursor(screen_x, screen_y);
 }
 
+/* void putc_display_terminal(uint8_t c);
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Output a character to the console on display terminal*/
 void putc_display_terminal(uint8_t c) {
     if(get_current_pcb()->terminal_id == get_display_terminal()) {
         putc(c);
