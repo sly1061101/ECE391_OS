@@ -12,6 +12,11 @@
 #define HIGH_BIT_MASK 0xffffe000
 #define MAX_ARG_SIZE 128
 
+#define KERNEL_STACK_SIZE 0x2000
+#define USER_STACK_SIZE 0x00400000
+#define KERNEL_MEMORY_BOT 0x800000
+#define USER_STACK_BOTTOM_VIRTUAL 0x83fffff
+
 typedef int32_t (*read_t)(int32_t fd, void* buf, int32_t nbytes);
 typedef int32_t (*write_t)(int32_t fd, const void* buf, int32_t nbytes);
 typedef int32_t (*open_t)(const uint8_t* filename);
@@ -71,6 +76,8 @@ extern int32_t request_pid();
 extern int32_t release_pid(uint32_t pid);
 
 extern int32_t next_scheduled_process();
+
+extern void switch_process(uint32_t pid);
 
 #endif
 

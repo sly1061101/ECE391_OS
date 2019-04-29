@@ -1,5 +1,7 @@
 #include "process.h"
-
+#include "terminal.h"
+#include "paging.h"
+#include "x86_desc.h"
 
 // Current number of processes.
 uint32_t process_count;
@@ -98,4 +100,50 @@ int32_t next_scheduled_process() {
             return i;
     }
     return -1;
+}
+
+void switch_process(uint32_t pid) {
+    // get current pcb
+    pcb_t *curr_pcb = get_current_pcb();
+
+    // Save the current esp and ebp 
+    asm volatile("movl %%esp, %0" \
+                    :"=r"(curr_pcb->esp)   \
+                    :                \
+                    :"memory");
+
+    asm volatile("movl %%ebp, %0" \
+                    :"=r"(curr_pcb->ebp)   \
+                    :                \
+                    :"memory");
+
+    // get next process to execute
+    pcb_t *next_pcb = get_pcb(pid);
+
+    // Backup the screen cursor position for current process and load it for next process.
+    backup_screen_position(&screen_x_backstore[curr_pcb->terminal_id], &screen_y_backstore[curr_pcb->terminal_id]);
+    load_screen_position(screen_x_backstore[next_pcb->terminal_id], screen_y_backstore[next_pcb->terminal_id]);
+    // If next process is running on displayed terminal, update its cursor.
+    if(next_pcb->terminal_id == get_display_terminal())
+        update_cursor(screen_x_backstore[next_pcb->terminal_id], screen_y_backstore[next_pcb->terminal_id]);
+
+    // Switch paging
+    load_page_directory(page_directory_program[next_pcb->pid]);
+
+    // The kernel space of a process in physical memory starts at 8MB - 8KB - 8KB * pid.
+    uint32_t kernel_space_base_address = KERNEL_MEMORY_BOT - KERNEL_STACK_SIZE - KERNEL_STACK_SIZE * next_pcb->pid;
+
+    // Modify TSS for context switch.
+    tss.ss0 = KERNEL_DS;
+    // Kernel stacks begins at highest address of kernel space and grows towards lower address.
+    tss.esp0 = kernel_space_base_address + KERNEL_STACK_SIZE - 1;
+
+    // change esp and ebp to next process's and switch to it
+    asm volatile(
+        "movl   %0, %%esp   ;"
+        "movl   %1, %%ebp   ;"
+        "LEAVE;"
+        "RET;"
+        : :"r"(next_pcb->esp), "r"(next_pcb->ebp) 
+    );
 }

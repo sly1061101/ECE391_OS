@@ -64,50 +64,36 @@ void pit_handler(){
 
     if(!should_scheduling)
         return;
- 
-	// get current pcb
-    pcb_t * curr_pcb = get_current_pcb();
 
-    // Save the current esp and ebp 
-    asm volatile("movl %%esp, %0" \
-                 :"=r"(curr_pcb->esp)   \
-                 :                \
-                 :"memory");
-
-    asm volatile("movl %%ebp, %0" \
-                 :"=r"(curr_pcb->ebp)   \
-                 :                \
-                 :"memory");
-
+    // If there are still inactive terminals, start shell on it.
     if(get_next_inactive_terminal() != -1) {
-        if(process_count > 0)
+        // If already has process running, we need to backup some data for it so that we can switch back to it later.
+        if(process_count > 0) {
+            pcb_t *curr_pcb = get_current_pcb();
+
+            // Save the current esp and ebp 
+            asm volatile("movl %%esp, %0" \
+                            :"=r"(curr_pcb->esp)   \
+                            :                \
+                            :"memory");
+
+            asm volatile("movl %%ebp, %0" \
+                            :"=r"(curr_pcb->ebp)   \
+                            :                \
+                            :"memory");
+            
+            // Save the screen cursor position.
             backup_screen_position(&screen_x_backstore[curr_pcb->terminal_id], &screen_y_backstore[curr_pcb->terminal_id]);
+        }
+
+        // Set the initial cursor for next shell to origin.
         load_screen_position(0, 0);
         (void) syscall_execute((uint8_t*)"shell");
+
+        // We will never really reach here.
         return;
     }
 
-    // get next process to execute
-    pcb_t *next_pcb = get_pcb(next_scheduled_process());
-
-    backup_screen_position(&screen_x_backstore[curr_pcb->terminal_id], &screen_y_backstore[curr_pcb->terminal_id]);
-    load_screen_position(screen_x_backstore[next_pcb->terminal_id], screen_y_backstore[next_pcb->terminal_id]);
-    if(next_pcb->terminal_id == get_display_terminal())
-        update_cursor(screen_x_backstore[next_pcb->terminal_id], screen_y_backstore[next_pcb->terminal_id]);
-
-    // Switch paging
-    load_page_directory(page_directory_program[next_pcb->pid]);
-
-    // Modify TSS for context switch.
-    tss.ss0 = KERNEL_DS;
-    tss.esp0 = 8 * 1024 * 1024 - next_pcb->pid * 8 * 1024 - 1;
-
-	// change esp and ebp
-	asm volatile(
-        "movl   %0, %%esp   ;"
-        "movl   %1, %%ebp   ;"
-        "LEAVE;"
-        "RET;"
-        : :"r"(next_pcb->esp), "r"(next_pcb->ebp) 
-    );
+    // If all terminals are active, switch to next scheduled process.
+    switch_process(next_scheduled_process());
 }
