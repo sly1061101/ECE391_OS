@@ -1,0 +1,82 @@
+## CheckPoint 3.1
+------
+Feature: Populate IDT
+Contributor: Tianying Zhou
+When: 3/10/19
+Where: idt.c, idt.h
+Bug: Throw a bunch of undefined exception error
+Debug: 1. Missing ; in idt.h file 2. Misspelled exception in macro
+
+Feature: Initialize PIC
+Contributor: Zekun Wei
+When: 3/11/19
+Where: i8259.c
+Bug: test_debug crashed after i8259_init();
+Debug: We didn't set the all mask at the beginning of the initialization function. Set the all mask for 8359 with 0xFF solved the problem.
+
+Feature: Initialize RTC
+Contributor: Zekun Wei
+When: 3/11/19
+Where: rtc.c
+Bug: RTC could not properly send interrupt/ PIC could not receive interrupt from RTC
+Debug: The port is reversed in the wiki page so we write the port in the wrong direction cause the RTC not send the interrupt. After switch the port RTC_REG_B and RTC_REG_PORT the RTC can send the interrupt properly.  
+
+## CheckPoint 3.2
+------
+Feature: Special keyboard case when Caps Lock and Shift are both on
+Contributor: Tianying Zhou
+When: 3/24/19
+Where: keyboard.c
+Bug: Keyboard does not work as the regular terminal when Caps Lock and Shift are both on
+Debug: Created one additional keyboard map(keyboard_map_shift_lower) to handle this special case
+
+## CheckPoint 3.3
+------
+## CheckPoint 3.3
+------
+Feature: Execute system call
+Contributor: Liuyi Shi
+When: 4/5/19
+Where: syscall.c
+Bug: System crashes when executing testprint on shell.
+Debug: Turned out that when setting up page directory for user program, I used the entire 32-bit physical page address instead of the high 10 bits, which actually put the low 10 bits onto the page directory entry.
+
+Feature: File Struct Has One Pointer to Distinct Fops (Jump) Tables
+Contributor: Tianying Zhou
+When: 4/15/19
+Where: process.h
+Bug: File struct has a fops struct instead of a pointer
+Debug: Change the fops to fops pointer and change dereferencing way accordingly
+ 
+## CheckPoint 3.4
+------
+Feature: Command Becomes NULL While Parsing for Remaining Arguments
+Contributor: Zekun Wei and Tianying Zhou
+When: 4/13/19
+Where: syscall.c
+Bug: When running syscall_getargs, the command is always null which leads to empty arguments
+Debug: After running GDB with the help from TA, the command became null because load_page_directory function switched memory space/process. Therefore we'll need a local variable to store command, and assign it back for current PCB.
+
+Feature: Can't pass all the systemerr test function
+Contributor: Zekun Wei 
+When: 4/14/19
+Where: syscall.c
+Bug: The file_position flag didn't clear, cause the memory didn't allocate right
+Debug: Clear the file_position flag to zero in halt_current_process
+
+## CheckPoint 3.5
+------
+Feature: Cursor won't show correctly after the terminal is switched to Terminal 2/3
+Contributor: Liuyi Shi
+When: 4/28/19
+Where: terminal.c
+Bug: When initializing video memory backstorage for background terminals, I initialized them to be all 0, which is not correct.
+Debug: Changed to use similar way from clear() to initialize the video memory backstorage.
+
+Feature: After switching terminal, content on previous terminal appears on current terminal.
+Contributor: Liuyi Shi
+When: 4/28/19
+Where: syscall.c
+Bug: Did not flush the TLB after modifying page table when switching terminal.
+Debug: Noticed that only a few lines of previous terminals resides, which looks like within one scheduling time slot. Thus we had the idea that TLB was not flushed and original process was still writing to physical video memory.
+
