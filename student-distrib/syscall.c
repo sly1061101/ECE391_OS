@@ -584,10 +584,12 @@ int32_t syscall_vidmap (uint8_t** screen_start) {
     }
 }
 
+// TODO for signal extra credit
 int32_t syscall_set_handler (int32_t signum, void* handler) {
     return -1;
 }
 
+// TODO for signal extra credit
 int32_t syscall_sigreturn (void) {
     return -1;
 }
