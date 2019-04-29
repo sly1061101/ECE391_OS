@@ -15,12 +15,6 @@
 #define CHANNEL_0 0x40
 #define PIT_IRQ 	0
 
-int32_t should_scheduling;
-
-void start_scheduling() {
-    should_scheduling = 1;
-}
-
 /*
  * 	 pit_init
  *   DESCRIPTION: Initialize the Programmable Interval Timer
@@ -30,9 +24,6 @@ void start_scheduling() {
  *   SIDE EFFECTS: pit that interrupts with given frequency
  */
 void pit_init(int32_t freq){
-
-    should_scheduling = 0;
-
 	/* Calculate our divisor */
 	int32_t divisor;
 	divisor = TOTAL_CLOCK_FREQ / freq;
@@ -62,7 +53,7 @@ void pit_init(int32_t freq){
 void pit_handler(){
 	send_eoi(PIT_IRQ);
 
-    if(!should_scheduling)
+    if(!is_scheduling_started())
         return;
 
     // If there are still inactive terminals, start shell on it.

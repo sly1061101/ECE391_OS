@@ -79,6 +79,10 @@ extern int32_t next_scheduled_process();
 
 extern void switch_process(uint32_t pid);
 
+extern void start_scheduling();
+
+extern int32_t is_scheduling_started();
+
 #endif
 
 #endif

@@ -7,6 +7,8 @@
 uint32_t process_count;
 // Flags showing whether a process exists.
 int8_t process_exist[MAX_PROCESS_NUMBER];
+// Flag indicating whether process scheduling has been started.
+int32_t scheduleing_started;
 
 /*
  *   process_init
@@ -20,6 +22,7 @@ void process_init() {
     for(i = 0; i < MAX_PROCESS_NUMBER; ++i)
         process_exist[i] = 0;
     process_count = 0;
+    scheduleing_started = 0;
 }
 
 /*
@@ -146,4 +149,12 @@ void switch_process(uint32_t pid) {
         "RET;"
         : :"r"(next_pcb->esp), "r"(next_pcb->ebp) 
     );
+}
+
+void start_scheduling() {
+    scheduleing_started = 1;
+}
+
+int32_t is_scheduling_started() {
+    return scheduleing_started;
 }
