@@ -533,7 +533,7 @@ int32_t syscall_getargs (uint8_t* buf, int32_t nbytes) {
 
 /*
  *   syscall_vidmap
- *   DESCRIPTION: maps thevideo memory into user space
+ *   DESCRIPTION: maps the video memory into user space
  *   INPUTS: screen_start -- pointer to screen_start pointer
  *   OUTPUTS: none
  *   RETURN VALUE: 0 on success, -1 on failure
