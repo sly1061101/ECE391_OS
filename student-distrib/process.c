@@ -47,7 +47,7 @@ pcb_t* get_current_pcb() {
 
 pcb_t* get_pcb(uint32_t pid) {
     // PCB is located at the top of kernel stack of each process. I.e. at 8MB - 8KB - pid * 8KB
-    return (pcb_t*)(8 * 1024 * 1024 - 8 * 1024 - pid * 8 * 1024);
+    return (pcb_t*)(VAL_8 * VAL_1024 * VAL_1024 - VAL_8 * VAL_1024 - pid * VAL_8 * VAL_1024);
 }
 
 /*
@@ -91,6 +91,13 @@ int32_t release_pid(uint32_t pid) {
     return 0;
 }
 
+/*
+ *   next_scheduled_process
+ *   DESCRIPTION: for next scheduled process
+ *   INPUTS: NONE
+ *   OUTPUTS: i on success, -1 on failure
+ *   SIDE EFFECTS: none
+ */
 int32_t next_scheduled_process() {
     pcb_t *pcb = get_current_pcb();
     int32_t i;
@@ -105,6 +112,13 @@ int32_t next_scheduled_process() {
     return -1;
 }
 
+/*
+ *   switch_process
+ *   DESCRIPTION: switch to other process
+ *   INPUTS: NONE
+ *   OUTPUTS: NONE
+ *   SIDE EFFECTS: none
+ */
 void switch_process(uint32_t pid) {
     // get current pcb
     pcb_t *curr_pcb = get_current_pcb();
@@ -152,14 +166,35 @@ void switch_process(uint32_t pid) {
 }
 
 
+/*
+ *   start_scheduling
+ *   DESCRIPTION: set flag to 1
+ *   INPUTS: NONE
+ *   OUTPUTS: NONE
+ *   SIDE EFFECTS: none
+ */
 void start_scheduling() {
     scheduleing_started = 1;
 }
 
+/*
+ *   is_scheduling_started
+ *   DESCRIPTION: get the flag
+ *   INPUTS: NONE
+ *   OUTPUTS: NONE
+ *   SIDE EFFECTS: none
+ */
 int32_t is_scheduling_started() {
     return scheduleing_started;
 }
 
+/*
+ *   is_scheduling_started
+ *   DESCRIPTION: get the process count
+ *   INPUTS: NONE
+ *   OUTPUTS: NONE
+ *   SIDE EFFECTS: none
+ */
  uint32_t get_process_count() {
      return process_count;
  }

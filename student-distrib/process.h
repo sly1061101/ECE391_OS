@@ -17,6 +17,9 @@
 #define KERNEL_MEMORY_BOT 0x800000
 #define USER_STACK_BOTTOM_VIRTUAL 0x83fffff
 
+#define VAL_8 8
+#define VAL_1024 1024
+
 typedef int32_t (*read_t)(int32_t fd, void* buf, int32_t nbytes);
 typedef int32_t (*write_t)(int32_t fd, const void* buf, int32_t nbytes);
 typedef int32_t (*open_t)(const uint8_t* filename);
