@@ -32,8 +32,6 @@ Debug: Created one additional keyboard map(keyboard_map_shift_lower) to handle t
 
 ## CheckPoint 3.3
 ------
-## CheckPoint 3.3
-------
 Feature: Execute system call
 Contributor: Liuyi Shi
 When: 4/5/19
