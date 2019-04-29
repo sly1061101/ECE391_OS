@@ -19,7 +19,7 @@
 #include "pit.h"
 
 #define RUN_TESTS
-#define FREQ_50
+#define FREQ_50 50
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
