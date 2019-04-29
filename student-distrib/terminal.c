@@ -1,26 +1,54 @@
 #include "terminal.h"
+#include "paging.h"
+#include "lib.h"
 
 unsigned char terminal_buffer[TERMINAL_NUM][TERMINAL_BUFFER_CAPACITY];
 int terminal_buffer_size[TERMINAL_NUM];
 
-uint8_t video_mem_backstore[TERMINAL_NUM][4 * 1024];
+// Must align to 4KB boundary since it would be used in page table.
+uint8_t video_mem_backstore[TERMINAL_NUM][4 * 1024] __attribute__((aligned(4096)));
+
 int screen_x_backstore[TERMINAL_NUM];
 int screen_y_backstore[TERMINAL_NUM];
 
 int display_terminal;
-int running_terminal;
 
 int get_display_terminal() {
     return display_terminal;
 }
 
+// 0 inactive, 1 active.
+int32_t terminal_state[TERMINAL_NUM];
+
+void set_terminal_state(uint32_t terminal_id, uint32_t state) {
+  terminal_state[terminal_id] = state;
+}
+
+extern int32_t get_next_inactive_terminal() {
+  int32_t i;
+  for(i = 0; i < TERMINAL_NUM; ++i) {
+    if(terminal_state[i] == TERMINAL_INACTIVE)
+      return i;
+  }
+  return -1;
+}
+
 void terminal_init() {
   int i;
-  for (i = 0 ; i < TERMINAL_NUM; i++)
+  for (i = 0 ; i < TERMINAL_NUM; i++) {
     terminal_buffer_size[i] = 0;
+    terminal_state[i] = TERMINAL_INACTIVE;
+    screen_x_backstore[i] = 0;
+    screen_y_backstore[i] = 0;
+
+    int32_t j;
+    for (j = 0; j < NUM_COLS * NUM_ROWS; j++) {
+        *(uint8_t *)(video_mem_backstore[i] + (j << 1)) = ' ';
+        *(uint8_t *)(video_mem_backstore[i] + (j << 1) + 1) = ATTRIB;
+    }
+  }
 
   display_terminal = 0;
-  running_terminal = 0;
 }
 
 /* terminal_buffer_write
@@ -57,25 +85,32 @@ int terminal_buffer_write(unsigned char *buf, int size) {
 */
 int terminal_buffer_move(int size)
 {
-  if(size > terminal_buffer_size[running_terminal])
+  if(size > terminal_buffer_size[get_current_pcb()->terminal_id])
     return -1;
 
   int i;
-  for(i = 0; i < terminal_buffer_size[running_terminal] - size; i++)
+  for(i = 0; i < terminal_buffer_size[get_current_pcb()->terminal_id] - size; i++)
   {
-    terminal_buffer[running_terminal][i] = terminal_buffer[running_terminal][i + size];
+    terminal_buffer[get_current_pcb()->terminal_id][i] = terminal_buffer[get_current_pcb()->terminal_id][i + size];
   }
-  terminal_buffer_size[running_terminal] -= size; 
+  terminal_buffer_size[get_current_pcb()->terminal_id] -= size; 
   return i;
 }
 
-int32_t terminal_switch(uint32_t terminal_id) {
-  backup_video_memory(video_mem_backstore[display_terminal]);
-  backup_screen_position(&screen_x_backstore[display_terminal], &screen_y_backstore[display_terminal]);
-  load_video_memory(video_mem_backstore[terminal_id]);
-  load_screen_position(screen_x_backstore[terminal_id], screen_y_backstore[terminal_id]);
+void switch_terminal(uint32_t terminal_id) {
+  
+  backup_video_memory((char *)(video_mem_backstore[display_terminal]));
+  load_video_memory((char *)(video_mem_backstore[terminal_id]));
+
+  page_table_terminal_video_memory[display_terminal][184].page_base_address = (uint32_t)video_mem_backstore[display_terminal] >> 12;
+  page_table_terminal_video_memory[terminal_id][184].page_base_address = 0xB8000 >> 12;
+
+  page_table_program_vidmap[display_terminal][512].page_base_address = (uint32_t)video_mem_backstore[display_terminal] >> 12;
+  page_table_program_vidmap[terminal_id][512].page_base_address = 0xB8000 >> 12;
+
+  load_page_directory(page_directory_program[get_current_pcb()->pid]);
+
   display_terminal = terminal_id;
-  running_terminal = terminal_id;
 }
 
 /* terminal_open
@@ -116,13 +151,13 @@ int terminal_read(int32_t fd, unsigned char* buf, int size)
     return -1;
 
   // Wait until terminal buffer is not empty.
-  while(terminal_buffer_size[running_terminal] == 0);
+  while(terminal_buffer_size[get_current_pcb()->terminal_id] == 0);
 
   int i;
-  for(i = 0; i < size && i < terminal_buffer_size[running_terminal]; i++)
+  for(i = 0; i < size && i < terminal_buffer_size[get_current_pcb()->terminal_id]; i++)
   {
-    buf[i] = terminal_buffer[running_terminal][i];
-    if(terminal_buffer[running_terminal][i] == '\n')
+    buf[i] = terminal_buffer[get_current_pcb()->terminal_id][i];
+    if(terminal_buffer[get_current_pcb()->terminal_id][i] == '\n')
     {
       i++;
       break;
@@ -155,6 +190,26 @@ int terminal_write(int32_t fd, unsigned char* buf, int size)
       // if(buf[i] == '\0')
       //   break;
       putc(buf[i]);
+    }
+    return i;
+}
+
+int terminal_write_display_terminal(int32_t fd, unsigned char* buf, int size)
+{
+    // Only Stout can be written to.
+    if(fd != 1)
+      return -1;
+
+    if(buf==NULL || size < 0)
+      return -1;
+
+    int i;
+    for(i = 0; i < size; i++)
+    {
+      // CAUTION: commented for test_terminal_write_size_larger_than_actual
+      // if(buf[i] == '\0')
+      //   break;
+      putc_display_terminal(buf[i]);
     }
     return i;
 }

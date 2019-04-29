@@ -7,9 +7,16 @@
 
 #include "types.h"
 
+#define NUM_COLS    80
+#define NUM_ROWS    25
+#define ATTRIB      0x7
+
+#ifndef ASM
+
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
 int32_t puts(int8_t *s);
+
 int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);
 int8_t *strrev(int8_t* s);
 uint32_t strlen(const int8_t* s);
@@ -42,6 +49,14 @@ extern void backup_video_memory(char *buf);
 extern void load_screen_position(int x, int y);
 // Backup screen position.
 extern void backup_screen_position(int *x, int *y);
+
+// Set of functions to make sure showing contents on the displayed
+//  terminal, which could be different from the currently running terminal.
+int32_t printf_display_terminal(int8_t *format, ...);
+void putc_display_terminal(uint8_t c);
+int32_t puts_display_terminal(int8_t *s);
+void clear_display_terminal(void);
+void backspace_delete_display_terminal();
 
 /* Port read functions */
 /* Inb reads a byte and returns its value as a zero-extended 32-bit
@@ -167,5 +182,7 @@ do {                                    \
             : "memory", "cc"            \
     );                                  \
 } while (0)
+
+#endif // ASM
 
 #endif /* _LIB_H */

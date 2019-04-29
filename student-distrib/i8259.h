@@ -8,6 +8,8 @@
 
 #include "types.h"
 
+#ifndef ASM
+
 /* Ports that each PIC sits on */
 #define MASTER_8259_PORT    0x20
 #define MASTER_8259_DATA     0x21
@@ -42,5 +44,7 @@ void enable_irq(uint32_t irq_num);
 void disable_irq(uint32_t irq_num);
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num);
+
+#endif // ASM
 
 #endif /* _I8259_H */

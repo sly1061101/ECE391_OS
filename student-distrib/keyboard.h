@@ -5,6 +5,8 @@
 #include "tests.h"
 #include "lib.h"
 
+#ifndef ASM
+
 #define KEYBOARD_IRQ 0x01
 #define KEYBOARD_DATA_PORT 0x60
 #define KEYBOARD_STATUS_PORT 0x64
@@ -42,5 +44,7 @@ extern void keyboard_handler();
 
 /* Helper fcuntion to handle special input cases */
 extern char char_converter(unsigned char input);
+
+#endif // ASM
 
 #endif /* _KEYBOARD_H */

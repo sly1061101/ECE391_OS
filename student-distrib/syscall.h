@@ -10,11 +10,6 @@
 #define FILE_TYPE       2
 #define MIN_FD_SIZE     2
 
-#define KERNEL_STACK_SIZE 0x2000
-#define USER_STACK_SIZE 0x00400000
-#define KERNEL_MEMORY_BOT 0x800000
-#define USER_STACK_BOTTOM_VIRTUAL 0x83fffff
-
 #define NUM_SYSCALL 11
 
 // Use regular integer array to store function addresses directly.

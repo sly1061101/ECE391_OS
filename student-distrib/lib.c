@@ -2,33 +2,40 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "process.h"
+#include "terminal.h"
 
+// This virtual address is not always mapped to physical video memory.
+//  When process on background terminal is running, it is mapped to the
+//  backstorage space for that terminal.
 #define VIDEO       0xB8000
-#define NUM_COLS    80
-#define NUM_ROWS    25
-#define ATTRIB      0x7
+// This virtual address is set up in all user program page
+//  tables such that it is always mapped to physical video memory.
+//  We can always use it to modify physical video memory (what is 
+//  really shown on screen) no matter which process is running.
+#define VIDEO_ALWAYS_TO_PHYSICAL 0xB9000
 
 static void scroll();
 
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+static char* video_mem_always_to_physical = (char *)(VIDEO_ALWAYS_TO_PHYSICAL);
 
 // Load content from buf into video memory.
 void load_video_memory(const char *buf) {
-    memcpy(video_mem, buf, 4 * 1024);
+    memcpy(video_mem_always_to_physical, buf, 4 * 1024);
 }
 
 // Backup the content in video memory into buf.
 void backup_video_memory(char *buf) {
-    memcpy(buf, video_mem, 4 * 1024);
+    memcpy(buf, video_mem_always_to_physical, 4 * 1024);
 }
 
 // Load screen position.
 void load_screen_position(int x, int y) {
     screen_x = x;
     screen_y = y;
-    update_cursor(screen_x, screen_y);
 }
 
 // Backup screen position.
@@ -49,7 +56,29 @@ void clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
-    update_cursor(screen_x, screen_y);
+    if(get_current_pcb()->terminal_id == get_display_terminal())
+        update_cursor(screen_x, screen_y);
+}
+
+/* void clear_display_terminal(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Clears display terminal's video memory */
+void clear_display_terminal(void) {
+    if(get_current_pcb()->terminal_id == get_display_terminal()) {
+        clear();
+        return;
+    }
+    
+    int32_t i;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(video_mem_always_to_physical + (i << 1)) = ' ';
+        *(uint8_t *)(video_mem_always_to_physical + (i << 1) + 1) = ATTRIB;
+    }
+
+    screen_x_backstore[get_display_terminal()] = 0;
+    screen_y_backstore[get_display_terminal()] = 0;
+    update_cursor(screen_x_backstore[get_display_terminal()], screen_y_backstore[get_display_terminal()]);
 }
 
 // Constants that actually make no sense but just to
@@ -115,6 +144,49 @@ static void scroll()
 }
 
 /*
+*   scroll_display_terminal
+*   Inputs: scroll display terminal's screen
+*   Return Value: void
+*   Function: enable scrolling
+*/
+static void scroll_display_terminal()
+{
+    if(get_current_pcb()->terminal_id == get_display_terminal()) {
+        scroll();
+        return;
+    }
+
+    int x, y;
+    int new_pos, old_pos;
+
+    // For each row, we copy row x+1 to row x
+    for(x = 0; x < NUM_ROWS - 1; x++)
+    {
+        for(y = 0; y < NUM_COLS; y++)
+        {
+            new_pos = NUM_COLS * x + y;
+            old_pos = NUM_COLS * x + y + NUM_COLS;
+            *(uint8_t *)(video_mem_always_to_physical + (new_pos << 1)) = *(video_mem_always_to_physical + (old_pos << 1));           
+            *(uint8_t *)(video_mem_always_to_physical + (new_pos << 1) + 1) = ATTRIB;
+        }
+    }
+    
+    x = NUM_ROWS-1;
+    
+    // clear last row
+    for(y = 0; y < NUM_COLS; y++)
+    {   
+        new_pos = NUM_COLS * x + y;
+        *(uint8_t *)(video_mem_always_to_physical + (new_pos << 1)) = ' ';           
+        *(uint8_t *)(video_mem_always_to_physical + (new_pos << 1) + 1) = ATTRIB;
+    }
+
+    screen_x_backstore[get_display_terminal()] = 0;
+    screen_y_backstore[get_display_terminal()] = NUM_ROWS - 1;
+    update_cursor(screen_x_backstore[get_display_terminal()], screen_y_backstore[get_display_terminal()]);
+}
+
+/*
 *   backspace_delete
 *   Inputs: none
 *   Return Value: void
@@ -140,7 +212,42 @@ void backspace_delete() {
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;  
     
     //update the cursor
-    update_cursor(screen_x, screen_y);                                            
+    if(get_current_pcb()->terminal_id == get_display_terminal())
+        update_cursor(screen_x, screen_y);                                                                                          
+}
+
+/*
+*   backspace_delete_display_terminal
+*   Inputs: none
+*   Return Value: void
+*   Function:  perform backspace on display terminal
+*/
+
+void backspace_delete_display_terminal() {
+    if(get_current_pcb()->terminal_id == get_display_terminal()) {
+        backspace_delete();
+        return;
+    }
+
+    // If already at beginning of first line, do nothing.
+    if(screen_x_backstore[get_display_terminal()] == 0 && screen_y_backstore[get_display_terminal()] == 0) {
+        return;
+    }
+    // If at beginning of not first line, go back to previous line.
+    else if (screen_x_backstore[get_display_terminal()] == 0 && screen_y_backstore[get_display_terminal()] > 0) {
+        screen_x_backstore[get_display_terminal()] = NUM_COLS - 1;     
+        screen_y_backstore[get_display_terminal()]--;
+    }
+    // Otherwise just go backware.
+    else {
+        screen_x_backstore[get_display_terminal()]--;         
+    }                    
+
+    // change registers 
+    *(uint8_t *)(video_mem_always_to_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1)) = ' ';
+    *(uint8_t *)(video_mem_always_to_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1) + 1) = ATTRIB;  
+    
+    update_cursor(screen_x_backstore[get_display_terminal()], screen_y_backstore[get_display_terminal()]);                                                                                            
 }
 
 /* Standard printf().
@@ -269,6 +376,121 @@ format_char_switch:
     return (buf - format);
 }
 
+/*
+*   printf_display_terminal
+*   Inputs: format
+*   Return Value: buf
+*   Function: standard printf on display temrinal
+*/
+int32_t printf_display_terminal(int8_t *format, ...) {
+
+    /* Pointer to the format string */
+    int8_t* buf = format;
+
+    /* Stack pointer for the other parameters */
+    int32_t* esp = (void *)&format;
+    esp++;
+
+    while (*buf != '\0') {
+        switch (*buf) {
+            case '%':
+                {
+                    int32_t alternate = 0;
+                    buf++;
+
+format_char_switch:
+                    /* Conversion specifiers */
+                    switch (*buf) {
+                        /* Print a literal '%' character */
+                        case '%':
+                            putc_display_terminal('%');
+                            break;
+
+                        /* Use alternate formatting */
+                        case '#':
+                            alternate = 1;
+                            buf++;
+                            /* Yes, I know gotos are bad.  This is the
+                             * most elegant and general way to do this,
+                             * IMHO. */
+                            goto format_char_switch;
+
+                        /* Print a number in hexadecimal form */
+                        case 'x':
+                            {
+                                int8_t conv_buf[64];
+                                if (alternate == 0) {
+                                    itoa(*((uint32_t *)esp), conv_buf, 16);
+                                    puts_display_terminal(conv_buf);
+                                } else {
+                                    int32_t starting_index;
+                                    int32_t i;
+                                    itoa(*((uint32_t *)esp), &conv_buf[8], 16);
+                                    i = starting_index = strlen(&conv_buf[8]);
+                                    while(i < 8) {
+                                        conv_buf[i] = '0';
+                                        i++;
+                                    }
+                                    puts_display_terminal(&conv_buf[starting_index]);
+                                }
+                                esp++;
+                            }
+                            break;
+
+                        /* Print a number in unsigned int form */
+                        case 'u':
+                            {
+                                int8_t conv_buf[36];
+                                itoa(*((uint32_t *)esp), conv_buf, 10);
+                                puts_display_terminal(conv_buf);
+                                esp++;
+                            }
+                            break;
+
+                        /* Print a number in signed int form */
+                        case 'd':
+                            {
+                                int8_t conv_buf[36];
+                                int32_t value = *((int32_t *)esp);
+                                if(value < 0) {
+                                    conv_buf[0] = '-';
+                                    itoa(-value, &conv_buf[1], 10);
+                                } else {
+                                    itoa(value, conv_buf, 10);
+                                }
+                                puts_display_terminal(conv_buf);
+                                esp++;
+                            }
+                            break;
+
+                        /* Print a single character */
+                        case 'c':
+                            putc_display_terminal((uint8_t) *((int32_t *)esp));
+                            esp++;
+                            break;
+
+                        /* Print a NULL-terminated string */
+                        case 's':
+                            puts_display_terminal(*((int8_t **)esp));
+                            esp++;
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                }
+                break;
+
+            default:
+                putc_display_terminal(*buf);
+                break;
+        }
+        buf++;
+    }
+    return (buf - format);
+}
+
 /* int32_t puts(int8_t* s);
  *   Inputs: int_8* s = pointer to a string of characters
  *   Return Value: Number of bytes written
@@ -277,6 +499,23 @@ int32_t puts(int8_t* s) {
     register int32_t index = 0;
     while (s[index] != '\0') {
         putc(s[index]);
+        index++;
+    }
+    return index;
+}
+
+/* int32_t puts_display_terminal;
+ *   Inputs: int_8* s = pointer to a string of characters
+ *   Return Value: Number of bytes written
+ *   Function: Output a string to the console on display terminal */
+int32_t puts_display_terminal(int8_t* s) {
+    if(get_current_pcb()->terminal_id == get_display_terminal()) {
+        return puts(s);
+    }
+    
+    register int32_t index = 0;
+    while (s[index] != '\0') {
+        putc_display_terminal(s[index]);
         index++;
     }
     return index;
@@ -301,7 +540,36 @@ void putc(uint8_t c) {
     }
     if(screen_y == NUM_ROWS)
         scroll();
-    update_cursor(screen_x, screen_y);
+    if(get_current_pcb()->terminal_id == get_display_terminal())
+        update_cursor(screen_x, screen_y);
+}
+
+/* void putc_display_terminal(uint8_t c);
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Output a character to the console on display terminal*/
+void putc_display_terminal(uint8_t c) {
+    if(get_current_pcb()->terminal_id == get_display_terminal()) {
+        putc(c);
+        return;
+    }
+
+    if(c == '\n' || c == '\r') {
+        screen_x_backstore[get_display_terminal()] = 0;
+        screen_y_backstore[get_display_terminal()]++;
+    } else {
+        *(uint8_t *)(video_mem_always_to_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1)) = c;
+        *(uint8_t *)(video_mem_always_to_physical + ((NUM_COLS * screen_y_backstore[get_display_terminal()] + screen_x_backstore[get_display_terminal()]) << 1) + 1) = ATTRIB;
+        screen_x_backstore[get_display_terminal()]++;
+        if(screen_x_backstore[get_display_terminal()] == NUM_COLS) {
+            screen_x_backstore[get_display_terminal()] = 0;
+            screen_y_backstore[get_display_terminal()]++;
+        }
+    }
+    if(screen_y_backstore[get_display_terminal()] == NUM_ROWS)
+        scroll_display_terminal();
+
+    update_cursor(screen_x_backstore[get_display_terminal()], screen_y_backstore[get_display_terminal()]);        
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

@@ -3,6 +3,9 @@
 #include "process.h"
 #include "x86_desc.h"
 #include "idt.h"
+#include "terminal.h"
+#include "paging.h"
+#include "syscall.h"
 
 #define TOTAL_CLOCK_FREQ 1193182
 #define PIT_COMMAND_REGISTER 0x43
@@ -11,7 +14,6 @@
 #define HSB_SHIFT 8
 #define CHANNEL_0 0x40
 #define PIT_IRQ 	0
-
 
 /*
  * 	 pit_init
@@ -22,7 +24,6 @@
  *   SIDE EFFECTS: pit that interrupts with given frequency
  */
 void pit_init(int32_t freq){
-
 	/* Calculate our divisor */
 	int32_t divisor;
 	divisor = TOTAL_CLOCK_FREQ / freq;
@@ -36,7 +37,7 @@ void pit_init(int32_t freq){
     /* Set high byte of divisor */  
     outb(divisor >> HSB_SHIFT, CHANNEL_0);  
 
-    interrupt_handler[PIT_VEC_NUM] = (uint32_t)pit_handler;
+    interrupt_handler[PIT_VEC_NUM] = pit_handler;
 
     enable_irq(PIT_IRQ);   
 }
@@ -50,48 +51,40 @@ void pit_init(int32_t freq){
  *   SIDE EFFECTS: none
  */
 void pit_handler(){
-
-	cli();
 	send_eoi(PIT_IRQ);
 
-	// // get next active terminal
-	// int current_terminal = get_running_terminal();
-	// int next_terminal = (current_terminal+1)%3;
+    if(!is_scheduling_started())
+        return;
 
-	// // get current pcb
-    // pcb_t * curr_pcb = get_current_pcb(); 
+    // If there are still inactive terminals, start shell on it.
+    if(get_next_inactive_terminal() != -1) {
+        // If already has process running, we need to backup some data for it so that we can switch back to it later.
+        if(get_process_count() > 0) {
+            pcb_t *curr_pcb = get_current_pcb();
 
-    // // Save the current esp and ebp 
-    // uint32_t esp;
-    // uint32_t ebp;
+            // Save the current esp and ebp 
+            asm volatile("movl %%esp, %0" \
+                            :"=r"(curr_pcb->esp)   \
+                            :                \
+                            :"memory");
 
-    // asm volatile("movl %%esp, %0" \
-    //              :"=r"(esp)   \
-    //              :                \
-    //              :"memory");
+            asm volatile("movl %%ebp, %0" \
+                            :"=r"(curr_pcb->ebp)   \
+                            :                \
+                            :"memory");
+            
+            // Save the screen cursor position.
+            backup_screen_position(&screen_x_backstore[curr_pcb->terminal_id], &screen_y_backstore[curr_pcb->terminal_id]);
+        }
 
-    // asm volatile("movl %%ebp, %0" \
-    //              :"=r"(ebp)   \
-    //              :                \
-    //              :"memory");
+        // Set the initial cursor for next shell to origin.
+        load_screen_position(0, 0);
+        (void) syscall_execute((uint8_t*)"shell");
 
-    // // Switch paging
-    // // TODO
+        // We will never really reach here.
+        return;
+    }
 
-    // // Modify TSS for context switch.
-    // tss.ss0 = KERNEL_DS;
-    // // TODO
-    // tss.esp0 = curr_pcb->esp0;
-
-	// // change esp and ebp
-	// // TODO
-	// asm volatile(
-    //     "movl   %0, %%esp   ;"
-    //     "movl   %1, %%ebp   ;"
-    //     "LEAVE;"
-    //     "RET;"
-    //     : :"r"(next_pcb->current_esp), "r"(next_pcb->current_ebp) 
-    // );
-	sti();
-
+    // If all terminals are active, switch to next scheduled process.
+    switch_process(next_scheduled_process());
 }

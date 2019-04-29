@@ -3,6 +3,7 @@
 
 #define ASM     1
 #include "paging.h"
+#include "terminal.h"
 
 
 #define NOT_PRESENT_PAGE    0x00000002
@@ -17,6 +18,7 @@
 .global load_page_directory
 .global paging_init
 .global page_table_program_vidmap
+.global page_table_terminal_video_memory
 
 # PDT, align to 4KB boundary
     .align  4096
@@ -48,10 +50,17 @@ page_directory_program:
     .long NOT_PRESENT_PAGE
     .endr
 
-# Page table for user program video memory mapping.
+# Page tables for terminals to map video memory.
+.align  4096
+page_table_terminal_video_memory:
+    .rept TERMINAL_NUM * NUM_PT_SIZE
+    .long NOT_PRESENT_PAGE
+    .endr
+
+# Page table for user program to map video memory into user-space, i.e. for the use of syscall_vidmap().
     .align  4096
 page_table_program_vidmap:
-    .rept 1024
+    .rept TERMINAL_NUM * NUM_PT_SIZE
     .long NOT_PRESENT_PAGE
     .endr
 
