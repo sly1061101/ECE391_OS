@@ -22,20 +22,27 @@
 #define VIDEO       0xB8000
 // Video memory backstorage space for background terminals.
 extern uint8_t video_mem_backstore[TERMINAL_NUM][_4KB];
+
 // Screen position backstorage for background terminals.
 extern int screen_x_backstore[TERMINAL_NUM];
 extern int screen_y_backstore[TERMINAL_NUM];
 
+// Return display terminal
 extern int get_display_terminal();
 
+// Initialize terminal
 extern void terminal_init(); 
+
 // Set terminal state, 0 inactive, 1 active.
 extern void set_terminal_state(uint32_t terminal_id, uint32_t state);
+
 // Get next terminal which still hasn't been used.
 extern int32_t get_next_inactive_terminal();
 
+// Major function that handle terminal switching
 extern void switch_terminal(uint32_t terminal_id);
 
+// Write to terminal buffer
 extern int terminal_buffer_write(unsigned char *buf, int size);
 
 /* Initialize terminal stuff(or nothing), return 0 */

@@ -19,6 +19,10 @@
 #define VAL_12 12
 #define PD_ENTRY_IDX 35
 #define PT_ENTRY_IDX 512
+#define PT_IDX_VIDEO_MEM 184
+#define PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM 185
+#define PD_IDX_FIRST_4MB 0
+
 // jump table for various system calls
 uint32_t syscall_jump_table[NUM_SYSCALL] =   {   0,
                                         (uint32_t)syscall_halt, (uint32_t)syscall_execute, (uint32_t)syscall_read,
@@ -115,10 +119,6 @@ int32_t halt_current_process(uint32_t status) {
 int32_t syscall_halt (uint8_t status) {
     return halt_current_process(status);
 }
-
-#define PT_IDX_VIDEO_MEM 184
-#define PT_IDX_ALWAY_TO_PHYSICAL_VIDEO_MEM 185
-#define PD_IDX_FIRST_4MB 0
 
 /*
  *   syscall_execute

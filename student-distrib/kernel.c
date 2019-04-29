@@ -19,6 +19,7 @@
 #include "pit.h"
 
 #define RUN_TESTS
+#define FREQ_50
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -179,7 +180,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     process_init();
 
-    pit_init(50);
+    pit_init(FREQ_50);
 
 #ifdef RUN_TESTS
     /* Run tests */

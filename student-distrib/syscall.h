@@ -26,9 +26,12 @@ extern int32_t syscall_write (int32_t fd, const void* buf, int32_t nbytes);
 extern int32_t syscall_open (const uint8_t* filename);
 extern int32_t syscall_close (int32_t fd);
 
-// TODO
+// reads command line arguments into a user-level buffer
 extern int32_t syscall_getargs (uint8_t* buf, int32_t nbytes);
+// maps the video memory into user space
 extern int32_t syscall_vidmap (uint8_t** screen_start);
+
+// TODO for signal extra credit
 extern int32_t syscall_set_handler (int32_t signum, void* handler);
 extern int32_t syscall_sigreturn (void);
 
