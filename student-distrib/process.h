@@ -74,15 +74,15 @@ extern int32_t request_pid();
 
 // Release the given pid, should be called when process is halted.
 extern int32_t release_pid(uint32_t pid);
-
+// get the next scheduled process i on success 0 on fail
 extern int32_t next_scheduled_process();
-
+// switch the process
 extern void switch_process(uint32_t pid);
-
+// set the schduling flag to 1
 extern void start_scheduling();
-
+//get the flag
 extern int32_t is_scheduling_started();
-
+//get the process count
 extern uint32_t get_process_count();
 
 #endif
