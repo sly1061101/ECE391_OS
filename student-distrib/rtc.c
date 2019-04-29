@@ -4,6 +4,7 @@
 #include "lib.h"
 #include "idt.h"
 #include "keyboard.h"
+#include "process.h"
 
 #define RTC_REG_A 0x8A
 #define RTC_REG_B 0x8B
@@ -16,9 +17,14 @@
 #define IRQ8 8
 #define HIGH_FOUR_BITS_MASK 0xF0
 
-volatile int is_interrupt;
+#define PHYSICAL_RTC_FREQ 1024
+
 int rtc_counter = 0;
 //void rtc_handler(void);
+
+uint32_t process_rtc_counter[MAX_PROCESS_NUMBER];
+uint32_t process_counter_target[MAX_PROCESS_NUMBER];
+volatile uint32_t process_is_interrupted[MAX_PROCESS_NUMBER];
 
 /*reference from https://wiki.osdev.org/RTC */
 
@@ -31,9 +37,19 @@ int rtc_counter = 0;
 */
 void rtc_init(void)
 {
-    unsigned freq = FREQ_2;
+    int32_t i;
+    int32_t freq = PHYSICAL_RTC_FREQ;
+
     cli();
-    is_interrupt = 0;
+    
+    for(i = 0; i < MAX_PROCESS_NUMBER; ++i) {
+        process_rtc_counter[i] = 0;
+        process_counter_target[i] = 0;
+        process_is_interrupted[i] = 0;
+    }
+    rtc_counter = 0;
+
+    set_freq(&freq);
 
     /*setting the register*/
     outb(RTC_REG_A , RTC_REG_PORT);     // select status register a
@@ -69,9 +85,18 @@ void rtc_init(void)
 
 void rtc_handler(void)
 {
+    int32_t i;
     cli();
     rtc_counter++;
-    is_interrupt = 1;
+    for(i = 0; i < MAX_PROCESS_NUMBER; ++i) {
+        if(process_counter_target[i] != 0) {
+            process_rtc_counter[i]++;
+            if(process_rtc_counter[i] == process_counter_target[i]) {
+                process_is_interrupted[i] = 1;
+                process_rtc_counter[i] = 0;
+            }
+        }
+    }
     outb(RTC_REG_C,RTC_REG_PORT);	// select register C
     inb(RTC_REG_DATA);		// just throw away contents
     send_eoi(IRQ8);
@@ -87,16 +112,8 @@ void rtc_handler(void)
 */
 
 int32_t rtc_open (const uint8_t* filename){
-    //change the rate:
-    unsigned freq = FREQ_2;//rate change to 2 herz
-    cli();
-    outb(RTC_REG_A,RTC_REG_PORT);
-    char prev=inb(RTC_REG_DATA);
-    outb(RTC_REG_A,RTC_REG_PORT);
-    outb((prev & HIGH_FOUR_BITS_MASK) | freq, RTC_REG_DATA);
-    sti();
+    process_counter_target[get_current_pcb()->pid] = PHYSICAL_RTC_FREQ / VAL_2;
 	return 0;
-
 }
 
 /*rtc_close
@@ -109,6 +126,9 @@ int32_t rtc_open (const uint8_t* filename){
 
 int32_t rtc_close(int32_t fd)
 {
+    process_rtc_counter[get_current_pcb()->pid] = 0;
+    process_counter_target[get_current_pcb()->pid] = 0;
+    process_is_interrupted[get_current_pcb()->pid] = 0;
     return 0;
 }
 
@@ -125,9 +145,9 @@ int32_t rtc_close(int32_t fd)
 int32_t rtc_read(int32_t fd,void*buf,int32_t nbytes)
 {
     cli();
-    is_interrupt = 0;
+    process_is_interrupted[get_current_pcb()->pid] = 0;
     sti();
-	while(!is_interrupt);
+	while(!process_is_interrupted[get_current_pcb()->pid]);
 
 	return 0;
 }
@@ -160,14 +180,11 @@ int32_t rtc_write(int32_t fd,const void*buf,int32_t nbytes)
         return -1;
     }
 
-    outb(RTC_REG_A,RTC_REG_PORT);
-    char prev=inb(RTC_REG_DATA);
-    outb(RTC_REG_A,RTC_REG_PORT);
-    outb((prev&HIGH_FOUR_BITS_MASK)|freq,RTC_REG_DATA);
-    sti();
+    freq = *buffer;
+    process_counter_target[get_current_pcb()->pid] = PHYSICAL_RTC_FREQ / freq;
 
     return 0;
-}
+}   
 
 /*set_freq
 * DISCRIPTION: sets frequency value
