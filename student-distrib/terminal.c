@@ -90,9 +90,10 @@ int terminal_buffer_move(int size)
   return i;
 }
 
-int32_t terminal_switch(uint32_t terminal_id) {
-  backup_video_memory(video_mem_backstore[display_terminal]);
-  load_video_memory(video_mem_backstore[terminal_id]);
+void terminal_switch(uint32_t terminal_id) {
+  
+  backup_video_memory((char *)(video_mem_backstore[display_terminal]));
+  load_video_memory((char *)(video_mem_backstore[terminal_id]));
 
   page_table_terminal_video_memory[display_terminal][184].page_base_address = (uint32_t)video_mem_backstore[display_terminal] >> 12;
   page_table_terminal_video_memory[terminal_id][184].page_base_address = 0xB8000 >> 12;

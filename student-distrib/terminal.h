@@ -18,12 +18,13 @@ extern int screen_y_backstore[TERMINAL_NUM];
 
 extern int get_display_terminal();
 
+extern void terminal_init(); 
 // Set terminal state, 0 inactive, 1 active.
 extern void set_terminal_state(uint32_t terminal_id, uint32_t state);
 // Get next terminal which still hasn't been used.
 extern int32_t get_next_inactive_terminal();
 
-extern int32_t terminal_switch(uint32_t terminal_id);
+extern void terminal_switch(uint32_t terminal_id);
 
 extern int terminal_buffer_write(unsigned char *buf, int size);
 

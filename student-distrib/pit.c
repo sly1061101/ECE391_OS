@@ -5,6 +5,7 @@
 #include "idt.h"
 #include "terminal.h"
 #include "paging.h"
+#include "syscall.h"
 
 #define TOTAL_CLOCK_FREQ 1193182
 #define PIT_COMMAND_REGISTER 0x43
@@ -45,7 +46,7 @@ void pit_init(int32_t freq){
     /* Set high byte of divisor */  
     outb(divisor >> HSB_SHIFT, CHANNEL_0);  
 
-    interrupt_handler[PIT_VEC_NUM] = (uint32_t)pit_handler;
+    interrupt_handler[PIT_VEC_NUM] = pit_handler;
 
     enable_irq(PIT_IRQ);   
 }
@@ -82,7 +83,7 @@ void pit_handler(){
         if(process_count > 0)
             backup_screen_position(&screen_x_backstore[curr_pcb->terminal_id], &screen_y_backstore[curr_pcb->terminal_id]);
         load_screen_position(0, 0);
-        syscall_execute((uint8_t*)"shell");
+        (void) syscall_execute((uint8_t*)"shell");
         return;
     }
 
