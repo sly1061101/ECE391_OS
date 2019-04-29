@@ -45,12 +45,8 @@ typedef struct file_desc {
 typedef struct pcb {
     uint32_t pid;
     int32_t  parent_pid;
-    struct pcb *parent_pcb;
-    uint32_t parent_ebp;
-    uint32_t parent_esp;
     file_desc_t file_array[MAX_FD_SIZE];
     int8_t  args_array[MAX_ARG_SIZE];
-    char available[MAX_FD_SIZE]; // when is it used?
     int32_t terminal_id;
     int32_t active;
     uint32_t esp;

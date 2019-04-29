@@ -61,7 +61,7 @@ int32_t halt_current_process(uint32_t status) {
         }
     }
 
-    if(pcb->parent_pcb == NULL) {
+    if(pcb->parent_pid == -1) {
         // If the first shell on any terminal is halted, restart it automatically.
         (void) release_pid(pcb->pid);
         // Mark the terminal to be inactive so that syscall_execute() could find 
@@ -70,10 +70,12 @@ int32_t halt_current_process(uint32_t status) {
         (void) syscall_execute((uint8_t*)"shell");
     }
 
-    pcb->parent_pcb->active = 1;
+    pcb_t *parent_pcb = get_pcb(pcb->parent_pid);
+
+    parent_pcb->active = 1;
 
     // The kernel space of a process in physical memory starts at 8MB - 8KB - 8KB * pid.
-    uint32_t kernel_space_base_address = KERNEL_MEMORY_BOT - KERNEL_STACK_SIZE - KERNEL_STACK_SIZE * pcb->parent_pcb->pid;
+    uint32_t kernel_space_base_address = KERNEL_MEMORY_BOT - KERNEL_STACK_SIZE - KERNEL_STACK_SIZE * parent_pcb->pid;
 
 
     // Restore TSS for parent process.
@@ -93,7 +95,7 @@ int32_t halt_current_process(uint32_t status) {
                     movl %2, %%eax    \n\
                     jmp syscall_execute_return "                             \
                 :                                                            \
-                :"r"(pcb->parent_esp),"r"(pcb->parent_ebp), "r"(status)      \
+                :"r"(parent_pcb->esp),"r"(parent_pcb->ebp), "r"(status)      \
                 :"memory");
     
     // Should never reach here.
@@ -276,31 +278,27 @@ int32_t syscall_execute (const uint8_t* command) {
     if(next_inactive_terminal != -1) {
         // We consider first process of each terminal not having parent.
         pcb->parent_pid = -1;
-        pcb->parent_pcb = NULL;
     }
     else {
+        pcb_t *parent_pcb = get_current_pcb();
         // Current process is the parent of the program to be executed.
-        pcb->parent_pcb = get_current_pcb();
-        pcb->parent_pid = pcb->parent_pcb->pid;
+        pcb->parent_pid = parent_pcb->pid;
         // Mark its parent to be inactive so that scheduler will ignore it.
-        pcb->parent_pcb->active = 0;
+        parent_pcb->active = 0;
 
         // Save the current esp and ebp data so that they can be restored at syscall_halt().
         uint32_t esp;
         uint32_t ebp;
 
         asm volatile("movl %%esp, %0" \
-                    :"=r"(esp)   \
+                    :"=r"(parent_pcb->esp)   \
                     :                \
                     :"memory");
 
         asm volatile("movl %%ebp, %0" \
-                    :"=r"(ebp)   \
+                    :"=r"(parent_pcb->ebp)   \
                     :                \
                     :"memory");
-
-        pcb->parent_esp = esp;
-        pcb->parent_ebp = ebp;
     }
 
     // Mark the process to be executed to active.
